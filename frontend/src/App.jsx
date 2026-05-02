@@ -1,16 +1,29 @@
+import { lazy, Suspense } from 'react'
 import { BrowserRouter, Route, Routes, useLocation } from 'react-router-dom'
 import Footer from './components/Footer/Footer'
 import Navbar from './components/Navbar/Navbar'
 import CustomCursor from './components/UI/CustomCursor'
+import PageTransition from './components/UI/PageTransition'
+import RouteWipe from './components/UI/RouteWipe'
 import ScrollProgressBar from './components/UI/ScrollProgressBar'
-import Cart from './pages/Cart'
-import Checkout from './pages/Checkout'
-import Collections from './pages/Collections'
-import Home from './pages/Home'
-import Login from './pages/Login'
-import NotFound from './pages/NotFound'
-import OrderTracking from './pages/OrderTracking'
-import ProductDetail from './pages/ProductDetail'
+import ToastContainer from './components/UI/Toast'
+
+const Home = lazy(() => import('./pages/Home'))
+const Collections = lazy(() => import('./pages/Collections'))
+const ProductDetail = lazy(() => import('./pages/ProductDetail'))
+const Cart = lazy(() => import('./pages/Cart'))
+const Checkout = lazy(() => import('./pages/Checkout'))
+const OrderTracking = lazy(() => import('./pages/OrderTracking'))
+const Login = lazy(() => import('./pages/Login'))
+const NotFound = lazy(() => import('./pages/NotFound'))
+
+function RouteFallback() {
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-cream">
+      <div className="h-6 w-6 animate-spin rounded-full border-2 border-caramel border-t-transparent" />
+    </div>
+  )
+}
 
 function AppRoutes() {
   const location = useLocation()
@@ -20,17 +33,23 @@ function AppRoutes() {
     <>
       <ScrollProgressBar />
       <CustomCursor />
+      <ToastContainer />
+      <RouteWipe />
       {!focusedPage && <Navbar />}
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/collections" element={<Collections />} />
-        <Route path="/product/:id" element={<ProductDetail />} />
-        <Route path="/cart" element={<Cart />} />
-        <Route path="/checkout" element={<Checkout />} />
-        <Route path="/order/:id/track" element={<OrderTracking />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="*" element={<NotFound />} />
-      </Routes>
+      <Suspense fallback={<RouteFallback />}>
+        <PageTransition>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/collections" element={<Collections />} />
+            <Route path="/product/:id" element={<ProductDetail />} />
+            <Route path="/cart" element={<Cart />} />
+            <Route path="/checkout" element={<Checkout />} />
+            <Route path="/order/:id/track" element={<OrderTracking />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </PageTransition>
+      </Suspense>
       {!focusedPage && <Footer />}
     </>
   )

@@ -2,6 +2,7 @@ import { useRef } from 'react'
 import { motion, useScroll, useTransform } from 'framer-motion'
 import { ChevronDown, Play } from 'lucide-react'
 import Button from '../UI/Button'
+import SmartImage from '../UI/SmartImage'
 
 const HERO_BG =
   'https://images.unsplash.com/photo-1616401784845-180882ba9ba8?w=1800&q=90'
@@ -46,12 +47,12 @@ export default function HeroSection() {
         style={{ y: backgroundY }}
         className="absolute inset-0 scale-110 will-change-transform"
       >
-        <img
+        <SmartImage
           src={HERO_BG}
           alt="Little Essentials curated premium lifestyle"
-          className="h-full w-full object-cover object-center"
-          loading="eager"
-          fetchPriority="high"
+          className="h-full w-full"
+          imageClassName="object-cover object-center"
+          priority
         />
       </motion.div>
 
@@ -157,10 +158,10 @@ export default function HeroSection() {
         >
           <div className="overflow-hidden rounded-[8px] bg-cream shadow-[0_32px_80px_rgba(59,42,34,0.40)]">
             <div className="relative h-[320px] bg-cappuccino">
-              <img
+              <SmartImage
                 src={PRODUCT_IMG}
                 alt="Featured Aesop hand balm"
-                className="h-full w-full object-cover"
+                className="h-full w-full"
               />
               <span className="absolute left-3 top-3 rounded-[2px] bg-espresso px-[10px] py-[4px] font-dm text-[9px] font-medium uppercase tracking-ultra text-cream">
                 New

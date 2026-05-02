@@ -1,11 +1,12 @@
-import { useState } from 'react'
+import { memo, useState } from 'react'
 import PropTypes from 'prop-types'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Heart } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import useStore from '../../store/useStore'
+import SmartImage from '../UI/SmartImage'
 
-export default function ProductCard({
+function ProductCard({
   product,
   size = 'md',
   className = '',
@@ -55,25 +56,23 @@ export default function ProductCard({
           featured ? 'aspect-[4/5] lg:aspect-auto lg:flex-1' : 'aspect-[4/5]'
         }`}
       >
-        {!imgLoaded && (
-          <div className="absolute inset-0 animate-shimmer bg-gradient-to-r from-cappuccino/40 via-cream to-cappuccino/40 bg-[length:400px_100%]" />
-        )}
-
-        <motion.img
-          src={product.images[0]}
-          alt={product.name}
-          onLoad={() => setImgLoaded(true)}
+        <motion.div
           animate={{ scale: isHovered ? 1.05 : 1 }}
           transition={{ duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
-          className={`h-full w-full object-cover object-center transition-opacity duration-300 ${
-            imgLoaded
-              ? isSoldOut
-                ? 'opacity-60 grayscale'
-                : 'opacity-100'
-              : 'opacity-0'
-          }`}
-          loading="lazy"
-        />
+          className="h-full w-full"
+        >
+          <SmartImage
+            src={product.images[0]}
+            alt={product.name}
+            className="h-full w-full"
+            imageClassName="object-cover object-center"
+            imgStyle={{
+              filter: isSoldOut ? 'grayscale(1)' : undefined,
+              opacity: imgLoaded && isSoldOut ? 0.6 : undefined,
+            }}
+            onLoad={() => setImgLoaded(true)}
+          />
+        </motion.div>
 
         {isOnSale && !isSoldOut ? (
           <span className="absolute left-3 top-3 z-10 rounded-[2px] bg-caramel px-[10px] py-[4px] font-dm text-[9px] font-medium uppercase tracking-ultra text-cream">
@@ -178,3 +177,5 @@ ProductCard.propTypes = {
   featured: PropTypes.bool,
   size: PropTypes.oneOf(['sm', 'md', 'lg']),
 }
+
+export default memo(ProductCard)

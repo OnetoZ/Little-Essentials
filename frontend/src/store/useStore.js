@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { useToast } from './useToast'
 
 const useStore = create((set, get) => ({
   cartItems: [],
@@ -21,14 +22,18 @@ const useStore = create((set, get) => ({
         cartItems: [...state.cartItems, { ...product, qty: quantity }],
       }))
     }
+
+    useToast.getState().show('Added to bag ✓', 'success')
   },
 
-  removeFromCart: (id) =>
+  removeFromCart: (id) => {
     set((state) => ({
       cartItems: state.cartItems.filter((item) => item.id !== id),
-    })),
+    }))
+    useToast.getState().show('Item removed', 'info')
+  },
 
-  updateQty: (id, qty) =>
+  updateQty: (id, qty) => {
     set((state) => ({
       cartItems:
         qty < 1
@@ -36,7 +41,12 @@ const useStore = create((set, get) => ({
           : state.cartItems.map((item) =>
               item.id === id ? { ...item, qty } : item,
             ),
-    })),
+    }))
+
+    if (qty < 1) {
+      useToast.getState().show('Item removed', 'info')
+    }
+  },
 
   toggleCart: () => set((state) => ({ cartOpen: !state.cartOpen })),
   openCart: () => set({ cartOpen: true }),
@@ -47,12 +57,19 @@ const useStore = create((set, get) => ({
   cartCount: () => get().cartItems.reduce((sum, item) => sum + item.qty, 0),
 
   wishlist: [],
-  toggleWishlist: (id) =>
+  toggleWishlist: (id) => {
+    const adding = !get().wishlist.includes(id)
+
     set((state) => ({
       wishlist: state.wishlist.includes(id)
         ? state.wishlist.filter((item) => item !== id)
         : [...state.wishlist, id],
-    })),
+    }))
+
+    if (adding) {
+      useToast.getState().show('Saved to wishlist ♡', 'success')
+    }
+  },
 
   mobileMenuOpen: false,
   toggleMobileMenu: () =>

@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion'
 import SectionHeader from '../UI/SectionHeader'
+import SmartImage from '../UI/SmartImage'
 
 const JOURNAL_POSTS = [
   {
@@ -56,14 +57,17 @@ export default function JournalSection() {
               style={{ aspectRatio: '16/9' }}
             >
               <div className="absolute inset-0 overflow-hidden">
-                <motion.img
-                  src={post.image}
-                  alt={post.title}
-                  className="h-full w-full object-cover"
+                <motion.div
+                  className="h-full w-full"
                   whileHover={{ scale: 1.04 }}
                   transition={{ duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
-                  loading="lazy"
-                />
+                >
+                  <SmartImage
+                    src={post.image}
+                    alt={post.title}
+                    className="h-full w-full"
+                  />
+                </motion.div>
               </div>
 
               <div

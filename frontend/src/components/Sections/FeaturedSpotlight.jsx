@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion'
 import Button from '../UI/Button'
 import { products } from '../../data/mockProducts'
+import SmartImage from '../UI/SmartImage'
 
 const SPOTLIGHT_BG =
   'https://images.unsplash.com/photo-1616401784845-180882ba9ba8?w=1600&q=85'
@@ -17,11 +18,10 @@ export default function FeaturedSpotlight() {
         transition={{ duration: 1.2, ease: [0.25, 0.46, 0.45, 0.94] }}
         className="absolute inset-0"
       >
-        <img
+        <SmartImage
           src={SPOTLIGHT_BG}
           alt="Featured product"
-          className="h-full w-full object-cover"
-          loading="lazy"
+          className="h-full w-full"
         />
         <div
           className="absolute inset-0"

@@ -11,6 +11,7 @@ import {
   ShoppingBag,
 } from 'lucide-react'
 import FloatInput from '../components/UI/FloatInput'
+import SmartImage from '../components/UI/SmartImage'
 import useStore from '../store/useStore'
 
 const STEPS = ['Information', 'Shipping', 'Payment']
@@ -182,10 +183,10 @@ function OrderSummary({ cartItems, subtotal, shippingCost }) {
                 <li key={item.id} className="flex items-center gap-3 py-3">
                   <div className="relative flex-shrink-0">
                     <div className="h-12 w-12 overflow-hidden rounded-[8px] bg-cappuccino">
-                      <img
-                        src={item.images?.[0]}
+                      <SmartImage
+                        src={item.images?.[0] ?? ''}
                         alt={item.name}
-                        className="h-full w-full object-cover"
+                        className="h-full w-full"
                       />
                     </div>
                     <span className="absolute -right-1.5 -top-1.5 flex h-[18px] w-[18px] items-center justify-center rounded-full bg-espresso text-[9px] font-medium text-cream">

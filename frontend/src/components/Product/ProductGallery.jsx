@@ -2,6 +2,7 @@ import { useRef, useState } from 'react'
 import PropTypes from 'prop-types'
 import { AnimatePresence, motion } from 'framer-motion'
 import { ZoomIn } from 'lucide-react'
+import SmartImage from '../UI/SmartImage'
 
 export default function ProductGallery({ images = [], productName = '' }) {
   const [activeIndex, setActiveIndex] = useState(0)
@@ -53,15 +54,13 @@ export default function ProductGallery({ images = [], productName = '' }) {
         onTouchEnd={handleTouchEnd}
       >
         <AnimatePresence mode="wait">
-          <motion.img
+          <motion.div
             key={activeIndex}
-            src={safeImages[activeIndex]}
-            alt={`${productName} view ${activeIndex + 1}`}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.3 }}
-            className="h-full w-full object-cover object-center transition-transform duration-150"
+            className="h-full w-full transition-transform duration-150"
             style={{
               transform: isZoomed ? 'scale(1.65)' : 'scale(1)',
               transformOrigin: `${zoomPos.x}% ${zoomPos.y}%`,
@@ -69,8 +68,15 @@ export default function ProductGallery({ images = [], productName = '' }) {
                 ? 'transform-origin 0s'
                 : 'transform 0.3s ease',
             }}
-            loading={activeIndex === 0 ? 'eager' : 'lazy'}
-          />
+          >
+            <SmartImage
+              src={safeImages[activeIndex]}
+              alt={`${productName} view ${activeIndex + 1}`}
+              className="h-full w-full"
+              imageClassName="object-cover object-center"
+              priority={activeIndex === 0}
+            />
+          </motion.div>
         </AnimatePresence>
 
         {!isZoomed ? (
@@ -109,11 +115,10 @@ export default function ProductGallery({ images = [], productName = '' }) {
             aria-label={`Show thumbnail ${index + 1}`}
             type="button"
           >
-            <img
+            <SmartImage
               src={image}
               alt={`${productName} thumbnail ${index + 1}`}
-              className="h-full w-full object-cover"
-              loading="lazy"
+              className="h-full w-full"
             />
           </button>
         ))}
