@@ -5,17 +5,20 @@ const useStore = create((set, get) => ({
   cartOpen: false,
 
   addToCart: (product) => {
+    const quantity = product.qty ?? 1
     const existing = get().cartItems.find((item) => item.id === product.id)
 
     if (existing) {
       set((state) => ({
         cartItems: state.cartItems.map((item) =>
-          item.id === product.id ? { ...item, qty: item.qty + 1 } : item,
+          item.id === product.id
+            ? { ...item, qty: item.qty + quantity }
+            : item,
         ),
       }))
     } else {
       set((state) => ({
-        cartItems: [...state.cartItems, { ...product, qty: 1 }],
+        cartItems: [...state.cartItems, { ...product, qty: quantity }],
       }))
     }
   },
