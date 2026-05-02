@@ -26,6 +26,7 @@ export default {
         smooth: 'cubic-bezier(0.4, 0, 0.2, 1)',
       },
       transitionDuration: {
+        250: '250ms',
         400: '400ms',
         600: '600ms',
         800: '800ms',
