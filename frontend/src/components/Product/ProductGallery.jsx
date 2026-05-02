@@ -71,7 +71,7 @@ export default function ProductGallery({ images = [], productName = '' }) {
           >
             <SmartImage
               src={safeImages[activeIndex]}
-              alt={`${productName} view ${activeIndex + 1}`}
+              alt={`${productName} product gallery view ${activeIndex + 1} at Little Essentials`}
               className="h-full w-full"
               imageClassName="object-cover object-center"
               priority={activeIndex === 0}
@@ -117,7 +117,7 @@ export default function ProductGallery({ images = [], productName = '' }) {
           >
             <SmartImage
               src={image}
-              alt={`${productName} thumbnail ${index + 1}`}
+              alt={`${productName} thumbnail ${index + 1} at Little Essentials`}
               className="h-full w-full"
             />
           </button>

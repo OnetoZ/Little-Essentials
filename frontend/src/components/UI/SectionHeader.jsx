@@ -14,9 +14,9 @@ export default function SectionHeader({ number, label, viewAllLink }) {
         {number}
       </span>
 
-      <p className="relative z-10 font-dm text-[11px] font-medium uppercase tracking-ultra text-caramel">
+      <h2 className="relative z-10 font-dm text-[11px] font-medium uppercase tracking-ultra text-caramel">
         {label}
-      </p>
+      </h2>
 
       {viewAllLink && (
         <Link

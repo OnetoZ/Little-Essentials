@@ -4,6 +4,7 @@ import { ShoppingBag } from 'lucide-react'
 import ProductGallery from '../components/Product/ProductGallery'
 import ProductInfo from '../components/Product/ProductInfo'
 import RelatedProducts from '../components/Product/RelatedProducts'
+import SEO from '../components/SEO/SEO'
 import { getProductById } from '../data/mockProducts'
 import useStore from '../store/useStore'
 
@@ -23,6 +24,15 @@ export default function ProductDetail() {
 
   return (
     <main className="min-h-screen bg-cream pb-[96px] pt-[80px] lg:pb-0">
+      <SEO
+        title={product.name}
+        description={`${product.description} Shop ${product.name} by ${product.brand} at Little Essentials. Free delivery over Rs.999.`}
+        canonical={`https://www.littleessentials.in/product/${product.id}`}
+        image={product.images?.[0]}
+        type="product"
+        product={product}
+        keywords={`${product.name}, ${product.brand} india, buy ${product.category} india, little essentials ${product.brand.toLowerCase()}`}
+      />
       <section className="mx-auto max-w-screen-xl px-8 py-12 lg:px-16 lg:py-16">
         <div className="flex flex-col gap-8 lg:flex-row lg:gap-0">
           <ProductGallery

@@ -9,10 +9,13 @@ import ScrollProgressBar from './components/UI/ScrollProgressBar'
 import ToastContainer from './components/UI/Toast'
 
 const Home = lazy(() => import('./pages/Home'))
+const About = lazy(() => import('./pages/About'))
 const Collections = lazy(() => import('./pages/Collections'))
 const ProductDetail = lazy(() => import('./pages/ProductDetail'))
 const Cart = lazy(() => import('./pages/Cart'))
 const Checkout = lazy(() => import('./pages/Checkout'))
+const InfoPage = lazy(() => import('./pages/InfoPage'))
+const Journal = lazy(() => import('./pages/Journal'))
 const OrderTracking = lazy(() => import('./pages/OrderTracking'))
 const Login = lazy(() => import('./pages/Login'))
 const NotFound = lazy(() => import('./pages/NotFound'))
@@ -40,10 +43,19 @@ function AppRoutes() {
         <PageTransition>
           <Routes>
             <Route path="/" element={<Home />} />
+            <Route path="/about" element={<About />} />
             <Route path="/collections" element={<Collections />} />
             <Route path="/product/:id" element={<ProductDetail />} />
             <Route path="/cart" element={<Cart />} />
             <Route path="/checkout" element={<Checkout />} />
+            <Route path="/journal" element={<Journal />} />
+            <Route path="/journal/:slug" element={<Journal />} />
+            <Route path="/contact" element={<InfoPage />} />
+            <Route path="/faqs" element={<InfoPage />} />
+            <Route path="/shipping" element={<InfoPage />} />
+            <Route path="/returns" element={<InfoPage />} />
+            <Route path="/size-guide" element={<InfoPage />} />
+            <Route path="/gift-cards" element={<InfoPage />} />
             <Route path="/order/:id/track" element={<OrderTracking />} />
             <Route path="/login" element={<Login />} />
             <Route path="*" element={<NotFound />} />

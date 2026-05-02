@@ -1,9 +1,16 @@
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
+import SEO from '../components/SEO/SEO'
 
 export default function NotFound() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-cream px-8 pt-[80px] text-center">
+      <SEO
+        title="Page Not Found"
+        description="This Little Essentials page could not be found."
+        canonical="https://www.littleessentials.in/404"
+        noIndex
+      />
       <div className="relative mb-8">
         <motion.span
           initial={{ opacity: 0, scale: 0.8 }}

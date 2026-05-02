@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Grid2X2, Grid3X3, SlidersHorizontal } from 'lucide-react'
 import ProductGrid from '../components/ProductCard/ProductGrid'
+import SEO from '../components/SEO/SEO'
 import RevealOnScroll from '../components/UI/RevealOnScroll'
 import { categories, getByCategory, products } from '../data/mockProducts'
 
@@ -64,6 +65,12 @@ export default function Collections() {
 
   return (
     <main className="min-h-screen overflow-x-hidden bg-cream pt-[80px]">
+      <SEO
+        title="Shop All Collections"
+        description="Browse the complete Little Essentials collection of premium lifestyle products. Skincare, home, fragrance, stationery, and accessories - all curated by hand."
+        canonical="https://www.littleessentials.in/collections"
+        keywords="premium products india, shop skincare india, luxury candles india, premium stationery, little essentials collections"
+      />
       <section className="relative overflow-hidden bg-cappuccino/40 px-8 py-16 lg:px-16 lg:py-24">
         <div
           className="absolute inset-0 opacity-[0.04]"
