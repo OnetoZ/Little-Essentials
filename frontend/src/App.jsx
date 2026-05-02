@@ -1,5 +1,8 @@
 import { BrowserRouter, Route, Routes, useLocation } from 'react-router-dom'
+import Footer from './components/Footer/Footer'
 import Navbar from './components/Navbar/Navbar'
+import CustomCursor from './components/UI/CustomCursor'
+import ScrollProgressBar from './components/UI/ScrollProgressBar'
 import Cart from './pages/Cart'
 import Checkout from './pages/Checkout'
 import Collections from './pages/Collections'
@@ -15,6 +18,8 @@ function AppRoutes() {
 
   return (
     <>
+      <ScrollProgressBar />
+      <CustomCursor />
       {!focusedPage && <Navbar />}
       <Routes>
         <Route path="/" element={<Home />} />
@@ -26,6 +31,7 @@ function AppRoutes() {
         <Route path="/login" element={<Login />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
+      {!focusedPage && <Footer />}
     </>
   )
 }
