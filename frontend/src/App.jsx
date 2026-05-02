@@ -1,4 +1,4 @@
-import { BrowserRouter, Route, Routes } from 'react-router-dom'
+import { BrowserRouter, Route, Routes, useLocation } from 'react-router-dom'
 import Navbar from './components/Navbar/Navbar'
 import Cart from './pages/Cart'
 import Checkout from './pages/Checkout'
@@ -9,12 +9,13 @@ import NotFound from './pages/NotFound'
 import OrderTracking from './pages/OrderTracking'
 import ProductDetail from './pages/ProductDetail'
 
-export default function App() {
+function AppRoutes() {
+  const location = useLocation()
+  const focusedPage = ['/checkout', '/login'].includes(location.pathname)
+
   return (
-    <BrowserRouter
-      future={{ v7_relativeSplatPath: true, v7_startTransition: true }}
-    >
-      <Navbar />
+    <>
+      {!focusedPage && <Navbar />}
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/collections" element={<Collections />} />
@@ -25,6 +26,16 @@ export default function App() {
         <Route path="/login" element={<Login />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
+    </>
+  )
+}
+
+export default function App() {
+  return (
+    <BrowserRouter
+      future={{ v7_relativeSplatPath: true, v7_startTransition: true }}
+    >
+      <AppRoutes />
     </BrowserRouter>
   )
 }
