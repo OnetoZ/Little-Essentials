@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import FloatInput from '../components/UI/FloatInput'
 import SmartImage from '../components/UI/SmartImage'
+import SEO from '../components/SEO/SEO'
 
 const LOGIN_BG =
   'https://images.unsplash.com/photo-1616401784845-180882ba9ba8?w=900&q=85'
@@ -52,6 +53,12 @@ export default function Login() {
 
   return (
     <main className="flex min-h-screen">
+      <SEO
+        title="Sign In"
+        description="Sign in to your Little Essentials account to manage orders, wishlist, and preferences."
+        canonical="https://www.littleessentials.in/login"
+        noIndex
+      />
       <div className="relative hidden overflow-hidden bg-espresso lg:flex lg:w-1/2">
         <SmartImage
           src={LOGIN_BG}

@@ -1,0 +1,21 @@
+{
+  "name": "Little Essentials",
+  "short_name": "LE",
+  "description": "Premium curated lifestyle store. Handpicked with intention.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#F3E9D7",
+  "theme_color": "#3B2A22",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["shopping", "lifestyle"],
+  "lang": "en-IN",
+  "dir": "ltr"
+}

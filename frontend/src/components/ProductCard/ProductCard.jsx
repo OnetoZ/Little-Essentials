@@ -63,7 +63,7 @@ function ProductCard({
         >
           <SmartImage
             src={product.images[0]}
-            alt={product.name}
+            alt={`${product.brand} ${product.name} - ${product.category} at Little Essentials`}
             className="h-full w-full"
             imageClassName="object-cover object-center"
             imgStyle={{
@@ -136,9 +136,9 @@ function ProductCard({
           {product.brand} · {product.category}
         </p>
 
-        <p className="mb-3 line-clamp-2 font-playfair text-[15px] font-semibold leading-[1.3] text-espresso transition-colors duration-250 ease-smooth group-hover:text-mocha">
+        <h3 className="mb-3 line-clamp-2 font-playfair text-[15px] font-semibold leading-[1.3] text-espresso transition-colors duration-250 ease-smooth group-hover:text-mocha">
           {product.name}
-        </p>
+        </h3>
 
         <div className="flex items-center justify-between gap-3">
           <div className="flex min-w-0 flex-wrap items-baseline gap-2">

@@ -12,6 +12,7 @@ import {
 } from 'lucide-react'
 import FloatInput from '../components/UI/FloatInput'
 import SmartImage from '../components/UI/SmartImage'
+import SEO from '../components/SEO/SEO'
 import useStore from '../store/useStore'
 
 const STEPS = ['Information', 'Shipping', 'Payment']
@@ -185,7 +186,7 @@ function OrderSummary({ cartItems, subtotal, shippingCost }) {
                     <div className="h-12 w-12 overflow-hidden rounded-[8px] bg-cappuccino">
                       <SmartImage
                         src={item.images?.[0] ?? ''}
-                        alt={item.name}
+                        alt={`${item.name} in Little Essentials checkout summary`}
                         className="h-full w-full"
                       />
                     </div>
@@ -696,6 +697,13 @@ export default function Checkout() {
 
   return (
     <main className="min-h-screen bg-cream">
+      <SEO
+        title="Checkout"
+        description="Secure checkout for Little Essentials orders."
+        canonical="https://www.littleessentials.in/checkout"
+        noIndex
+      />
+      <h1 className="sr-only">Checkout</h1>
       <header className="border-b border-cappuccino/50 px-8 py-4">
         <div className="mx-auto flex max-w-screen-lg items-center justify-between">
           <Link

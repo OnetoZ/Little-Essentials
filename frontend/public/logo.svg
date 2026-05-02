@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 120" role="img" aria-label="Little Essentials">
+  <rect width="320" height="120" rx="12" fill="#F3E9D7"/>
+  <circle cx="60" cy="60" r="34" fill="#3B2A22"/>
+  <text x="60" y="70" text-anchor="middle" font-family="Georgia, serif" font-size="28" font-weight="700" fill="#F3E9D7">LE</text>
+  <text x="112" y="55" font-family="Georgia, serif" font-size="28" font-weight="700" fill="#3B2A22">Little</text>
+  <text x="112" y="84" font-family="Georgia, serif" font-size="28" font-weight="700" fill="#7A553A">Essentials</text>
+  <path d="M112 92h150" stroke="#B08968" stroke-width="3" stroke-linecap="round"/>
+</svg>

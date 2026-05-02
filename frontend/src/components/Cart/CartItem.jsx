@@ -24,7 +24,7 @@ export default function CartItem({ item }) {
       <div className="h-[80px] w-[80px] flex-shrink-0 overflow-hidden rounded-[8px] bg-cappuccino">
         <SmartImage
           src={item.images?.[0] ?? ''}
-          alt={item.name}
+          alt={`${item.brand} ${item.name} in Little Essentials shopping bag`}
           className="h-full w-full"
         />
       </div>

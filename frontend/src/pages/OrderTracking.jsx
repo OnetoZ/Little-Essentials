@@ -6,6 +6,7 @@ import Confetti from '../components/OrderTracking/Confetti'
 import CountdownTimer from '../components/OrderTracking/CountdownTimer'
 import DeliveryMap from '../components/OrderTracking/DeliveryMap'
 import ProgressTimeline from '../components/OrderTracking/ProgressTimeline'
+import SEO from '../components/SEO/SEO'
 import RevealOnScroll from '../components/UI/RevealOnScroll'
 import SmartImage from '../components/UI/SmartImage'
 import useStore from '../store/useStore'
@@ -98,6 +99,12 @@ export default function OrderTracking() {
 
   return (
     <main className="min-h-screen bg-cream pt-[80px]">
+      <SEO
+        title="Track Your Order"
+        description="Track your Little Essentials order status, delivery progress, and estimated arrival."
+        canonical={`https://www.littleessentials.in/order/${orderId}/track`}
+        noIndex
+      />
       <Confetti active={isDelivered} />
 
       <section className="bg-espresso px-8 py-10">
@@ -250,7 +257,7 @@ export default function OrderTracking() {
                 <div className="h-20 w-20 flex-shrink-0 overflow-hidden rounded-[12px] bg-cappuccino">
                   <SmartImage
                     src={MOCK_ORDER.product.image}
-                    alt={MOCK_ORDER.product.name}
+                    alt={`${MOCK_ORDER.product.name} reorder card at Little Essentials`}
                     className="h-full w-full"
                   />
                 </div>
@@ -287,7 +294,7 @@ export default function OrderTracking() {
                 <div className="h-20 w-20 flex-shrink-0 overflow-hidden rounded-[12px] bg-cappuccino">
                   <SmartImage
                     src={MOCK_ORDER.product.image}
-                    alt={MOCK_ORDER.product.name}
+                    alt={`${MOCK_ORDER.product.name} order tracking product at Little Essentials`}
                     className="h-full w-full"
                   />
                 </div>
