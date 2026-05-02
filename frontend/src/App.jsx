@@ -11,7 +11,9 @@ import ProductDetail from './pages/ProductDetail'
 
 export default function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter
+      future={{ v7_relativeSplatPath: true, v7_startTransition: true }}
+    >
       <Navbar />
       <Routes>
         <Route path="/" element={<Home />} />
