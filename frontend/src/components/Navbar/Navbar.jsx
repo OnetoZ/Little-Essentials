@@ -141,10 +141,10 @@ export default function Navbar() {
               {count > 0 && (
                 <motion.span
                   key={count}
-                  initial={{ scale: 0.5 }}
-                  animate={{ scale: [1, 1.18, 1] }}
+                  initial={{ scale: 0, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
                   exit={{ scale: 0, opacity: 0 }}
-                  transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+                  transition={{ type: 'spring', stiffness: 500, damping: 20 }}
                   className="absolute -right-2 -top-2 flex h-[18px] w-[18px] items-center justify-center rounded-full bg-mocha font-dm text-[10px] font-medium text-cream"
                 >
                   {count}
@@ -191,10 +191,10 @@ export default function Navbar() {
               {count > 0 && (
                 <motion.span
                   key={count}
-                  initial={{ scale: 0.5 }}
-                  animate={{ scale: [1, 1.18, 1] }}
+                  initial={{ scale: 0, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
                   exit={{ scale: 0, opacity: 0 }}
-                  transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+                  transition={{ type: 'spring', stiffness: 500, damping: 20 }}
                   className="absolute -right-2 -top-2 flex h-[16px] w-[16px] items-center justify-center rounded-full bg-mocha font-dm text-[9px] font-medium text-cream"
                 >
                   {count}
