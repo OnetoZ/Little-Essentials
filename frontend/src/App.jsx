@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react'
-import { BrowserRouter, Route, Routes, useLocation } from 'react-router-dom'
+import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import Footer from './components/Footer/Footer'
 import Navbar from './components/Navbar/Navbar'
 import CustomCursor from './components/UI/CustomCursor'
@@ -28,41 +28,50 @@ function RouteFallback() {
   )
 }
 
-function AppRoutes() {
-  const location = useLocation()
-  const focusedPage = ['/checkout', '/login'].includes(location.pathname)
 
+function AppRoutes() {
   return (
     <>
       <ScrollProgressBar />
       <CustomCursor />
       <ToastContainer />
       <RouteWipe />
-      {!focusedPage && <Navbar />}
+      <a
+        href="#main-content"
+        className="absolute left-2 top-2 z-[9999] -translate-y-16 rounded-[3px] bg-mocha px-4 py-2 font-dm text-[13px] font-medium text-cream transition-transform duration-200 focus:translate-y-0"
+      >
+        Skip to main content
+      </a>
+      <Navbar />
       <Suspense fallback={<RouteFallback />}>
-        <PageTransition>
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/about" element={<About />} />
-            <Route path="/collections" element={<Collections />} />
-            <Route path="/product/:id" element={<ProductDetail />} />
-            <Route path="/cart" element={<Cart />} />
-            <Route path="/checkout" element={<Checkout />} />
-            <Route path="/journal" element={<Journal />} />
-            <Route path="/journal/:slug" element={<Journal />} />
-            <Route path="/contact" element={<InfoPage />} />
-            <Route path="/faqs" element={<InfoPage />} />
-            <Route path="/shipping" element={<InfoPage />} />
-            <Route path="/returns" element={<InfoPage />} />
-            <Route path="/size-guide" element={<InfoPage />} />
-            <Route path="/gift-cards" element={<InfoPage />} />
-            <Route path="/order/:id/track" element={<OrderTracking />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </PageTransition>
+        <div id="main-content">
+          <PageTransition>
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/about" element={<About />} />
+              <Route path="/collections" element={<Collections />} />
+              <Route path="/product/:id" element={<ProductDetail />} />
+              <Route path="/cart" element={<Cart />} />
+              <Route path="/checkout" element={<Checkout />} />
+              <Route path="/journal" element={<Journal />} />
+              <Route path="/journal/:slug" element={<Journal />} />
+              <Route path="/contact" element={<InfoPage />} />
+              <Route path="/faqs" element={<InfoPage />} />
+              <Route path="/shipping" element={<InfoPage />} />
+              <Route path="/returns" element={<InfoPage />} />
+              <Route path="/size-guide" element={<InfoPage />} />
+              <Route path="/gift-cards" element={<InfoPage />} />
+              <Route path="/privacy" element={<InfoPage />} />
+              <Route path="/terms" element={<InfoPage />} />
+              <Route path="/cookies" element={<InfoPage />} />
+              <Route path="/order/:id/track" element={<OrderTracking />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </PageTransition>
+        </div>
       </Suspense>
-      {!focusedPage && <Footer />}
+      <Footer />
     </>
   )
 }

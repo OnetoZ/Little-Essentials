@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 import FloatInput from '../components/UI/FloatInput'
 import SmartImage from '../components/UI/SmartImage'
 import SEO from '../components/SEO/SEO'
+import { sanitizeText } from '../utils/sanitize'
 
 const LOGIN_BG =
   'https://images.unsplash.com/photo-1616401784845-180882ba9ba8?w=900&q=85'
@@ -49,10 +50,13 @@ export default function Login() {
   const [tab, setTab] = useState('login')
   const [form, setForm] = useState({ name: '', email: '', password: '' })
   const setField = (key) => (event) =>
-    setForm((current) => ({ ...current, [key]: event.target.value }))
+    setForm((current) => ({
+      ...current,
+      [key]: sanitizeText(event.target.value),
+    }))
 
   return (
-    <main className="flex min-h-screen">
+    <main className="flex min-h-screen pt-[68px]">
       <SEO
         title="Sign In"
         description="Sign in to your Little Essentials account to manage orders, wishlist, and preferences."

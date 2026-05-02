@@ -41,15 +41,20 @@ const ACCORDION_ITEMS = [
   },
 ]
 
-function AccordionItem({ title, content }) {
+function AccordionItem({ title, content, id }) {
   const [open, setOpen] = useState(false)
+  const buttonId = `accordion-button-${id}`
+  const panelId = `accordion-panel-${id}`
 
   return (
     <div className="border-b border-cappuccino/50">
       <button
+        id={buttonId}
         onClick={() => setOpen((current) => !current)}
         className="group flex w-full items-center justify-between py-4 text-left"
         type="button"
+        aria-expanded={open}
+        aria-controls={panelId}
       >
         <span className="font-dm text-[13px] font-medium text-espresso transition-colors duration-250 ease-smooth group-hover:text-mocha">
           {title}
@@ -65,6 +70,9 @@ function AccordionItem({ title, content }) {
       <AnimatePresence initial={false}>
         {open ? (
           <motion.div
+            id={panelId}
+            role="region"
+            aria-labelledby={buttonId}
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
@@ -83,6 +91,7 @@ function AccordionItem({ title, content }) {
 
 AccordionItem.propTypes = {
   content: PropTypes.string.isRequired,
+  id: PropTypes.string.isRequired,
   title: PropTypes.string.isRequired,
 }
 
@@ -212,6 +221,7 @@ export default function ProductInfo({ product }) {
             onClick={() => setQty((current) => Math.max(1, current - 1))}
             className="flex h-10 w-10 items-center justify-center text-lg text-caramel transition-colors duration-250 ease-smooth hover:bg-cappuccino/30"
             type="button"
+            aria-label={`Decrease ${product.name} quantity`}
           >
             −
           </button>
@@ -222,6 +232,7 @@ export default function ProductInfo({ product }) {
             onClick={() => setQty((current) => current + 1)}
             className="flex h-10 w-10 items-center justify-center text-lg text-caramel transition-colors duration-250 ease-smooth hover:bg-cappuccino/30"
             type="button"
+            aria-label={`Increase ${product.name} quantity`}
           >
             +
           </button>
@@ -253,6 +264,7 @@ export default function ProductInfo({ product }) {
           onClick={() => toggleWishlist(product.id)}
           className="flex h-[48px] w-full items-center justify-center gap-2 rounded-[4px] border border-cappuccino font-dm text-[14px] font-medium text-espresso transition-colors duration-250 ease-smooth hover:border-caramel active:scale-[0.98]"
           type="button"
+          aria-label={isWished ? 'Remove from wishlist' : 'Add to wishlist'}
         >
           <Heart
             size={17}
@@ -280,6 +292,7 @@ export default function ProductInfo({ product }) {
         {ACCORDION_ITEMS.map((item) => (
           <AccordionItem
             key={item.title}
+            id={item.title.toLowerCase().replaceAll(' ', '-')}
             title={item.title}
             content={item.content}
           />

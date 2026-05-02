@@ -147,6 +147,8 @@ export default function Collections() {
 
           <div className="flex flex-shrink-0 items-center gap-3">
             <select
+              name="sortProducts"
+              aria-label="Sort products"
               value={sortBy}
               onChange={(event) => handleSortChange(event.target.value)}
               className="cursor-pointer rounded-[8px] border border-cappuccino/60 bg-cream px-3 py-2 font-dm text-[12px] text-espresso transition-colors hover:border-caramel focus:border-mocha focus:outline-none"

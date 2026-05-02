@@ -2,6 +2,7 @@ import { useState } from 'react'
 import PropTypes from 'prop-types'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
+import { sanitizeText } from '../../utils/sanitize'
 
 function InstagramIcon() {
   return (
@@ -56,9 +57,17 @@ const CARE_LINKS = [
 ]
 
 const SOCIAL = [
-  { icon: InstagramIcon, label: 'Instagram', href: '#' },
-  { icon: PinterestIcon, label: 'Pinterest', href: '#' },
-  { icon: TikTokIcon, label: 'TikTok', href: '#' },
+  {
+    icon: InstagramIcon,
+    label: 'Instagram',
+    href: 'https://www.instagram.com/littleessentials',
+  },
+  {
+    icon: PinterestIcon,
+    label: 'Pinterest',
+    href: 'https://www.pinterest.com/littleessentials',
+  },
+  { icon: TikTokIcon, label: 'TikTok', href: 'https://www.tiktok.com' },
 ]
 
 function FooterLink({ to, children }) {
@@ -145,6 +154,8 @@ export default function Footer() {
                   key={label}
                   href={href}
                   aria-label={label}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   whileHover={{ y: -3 }}
                   transition={{ duration: 0.2 }}
                   className="text-cappuccino/55 transition-colors duration-250 ease-smooth hover:text-caramel"
@@ -193,8 +204,14 @@ export default function Footer() {
             <form onSubmit={handleNewsletter} className="relative">
               <input
                 type="email"
+                name="newsletterEmail"
+                autoComplete="email"
+                maxLength={254}
+                pattern="[^@\s]+@[^@\s]+\.[^@\s]+"
                 value={submitted ? "You're in the edit. ✓" : email}
-                onChange={(event) => !submitted && setEmail(event.target.value)}
+                onChange={(event) =>
+                  !submitted && setEmail(sanitizeText(event.target.value))
+                }
                 placeholder="your@email.com"
                 readOnly={submitted}
                 className={`h-12 w-full rounded-[8px] border border-cream/[0.12] bg-cream/[0.06] pl-4 pr-14 font-dm text-[13px] outline-none transition-all duration-250 ease-smooth placeholder:text-cream/30 focus:border-caramel/40 ${
@@ -232,14 +249,18 @@ export default function Footer() {
           </p>
 
           <div className="flex items-center gap-4">
-            {['Privacy Policy', 'Terms of Service', 'Cookies'].map((label, index) => (
-              <span key={label}>
-                <a
-                  href="#"
+            {[
+              { label: 'Privacy Policy', path: '/privacy' },
+              { label: 'Terms of Service', path: '/terms' },
+              { label: 'Cookies', path: '/cookies' },
+            ].map((link, index) => (
+              <span key={link.label}>
+                <Link
+                  to={link.path}
                   className="font-dm text-[11px] text-cream/25 transition-colors duration-250 ease-smooth hover:text-cream/50"
                 >
-                  {label}
-                </a>
+                  {link.label}
+                </Link>
                 {index < 2 ? <span className="ml-4 text-cream/15">·</span> : null}
               </span>
             ))}

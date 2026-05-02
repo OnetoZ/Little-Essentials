@@ -3,6 +3,75 @@ import PropTypes from 'prop-types'
 import { AnimatePresence, motion } from 'framer-motion'
 import { AlertCircle, Check, Eye, EyeOff } from 'lucide-react'
 
+const FIELD_DEFAULTS = {
+  email: {
+    autoComplete: 'email',
+    maxLength: 254,
+    pattern: '[^@\\s]+@[^@\\s]+\\.[^@\\s]+',
+  },
+  phone: {
+    autoComplete: 'tel',
+    maxLength: 15,
+    pattern: '[+]?[0-9]{10,15}',
+  },
+  password: {
+    autoComplete: 'current-password',
+    maxLength: 128,
+    minLength: 8,
+  },
+  address: {
+    autoComplete: 'address-line1',
+    maxLength: 100,
+  },
+  address2: {
+    autoComplete: 'address-line2',
+    maxLength: 100,
+  },
+  city: {
+    autoComplete: 'address-level2',
+    maxLength: 80,
+  },
+  state: {
+    autoComplete: 'address-level1',
+    maxLength: 80,
+  },
+  pincode: {
+    autoComplete: 'postal-code',
+    maxLength: 10,
+    pattern: '[0-9]{5,10}',
+  },
+  firstName: {
+    autoComplete: 'given-name',
+    maxLength: 60,
+  },
+  lastName: {
+    autoComplete: 'family-name',
+    maxLength: 60,
+  },
+  name: {
+    autoComplete: 'name',
+    maxLength: 100,
+  },
+  cardNumber: {
+    autoComplete: 'cc-number',
+    inputMode: 'numeric',
+    maxLength: 23,
+  },
+  expiry: {
+    autoComplete: 'cc-exp',
+    maxLength: 7,
+  },
+  cvv: {
+    autoComplete: 'cc-csc',
+    inputMode: 'numeric',
+    maxLength: 4,
+  },
+  cardName: {
+    autoComplete: 'cc-name',
+    maxLength: 100,
+  },
+}
+
 const FloatInput = forwardRef(function FloatInput(
   {
     label,
@@ -26,6 +95,7 @@ const FloatInput = forwardRef(function FloatInput(
   const isFloated = focused || inputValue.length > 0
   const isPassword = type === 'password'
   const inputType = isPassword ? (showPass ? 'text' : 'password') : type
+  const fieldDefaults = FIELD_DEFAULTS[name] ?? FIELD_DEFAULTS[type] ?? {}
 
   return (
     <div className={`relative ${className}`}>
@@ -42,7 +112,11 @@ const FloatInput = forwardRef(function FloatInput(
           onBlur?.(event)
         }}
         placeholder=" "
-        autoComplete={name}
+        autoComplete={fieldDefaults.autoComplete ?? name}
+        maxLength={fieldDefaults.maxLength}
+        minLength={fieldDefaults.minLength}
+        pattern={fieldDefaults.pattern}
+        inputMode={fieldDefaults.inputMode}
         className={`peer h-[56px] w-full rounded-[8px] border bg-cream-light px-4 pb-2 pt-5 font-dm text-[14px] text-espresso outline-none transition-all duration-250 ease-smooth focus:ring-1 ${
           error
             ? 'border-red-400 focus:border-red-400 focus:ring-red-400'

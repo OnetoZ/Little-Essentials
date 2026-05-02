@@ -13,7 +13,9 @@ import {
 import FloatInput from '../components/UI/FloatInput'
 import SmartImage from '../components/UI/SmartImage'
 import SEO from '../components/SEO/SEO'
+import { useOnce } from '../hooks/useOnce'
 import useStore from '../store/useStore'
+import { sanitizeText } from '../utils/sanitize'
 
 const STEPS = ['Information', 'Shipping', 'Payment']
 const SHIPPING_METHODS = {
@@ -68,13 +70,18 @@ function AppleIcon() {
 
 function StepIndicator({ current }) {
   return (
-    <div className="mb-8 flex items-center justify-center">
+    <nav className="mb-8" aria-label="Checkout progress">
+      <ol className="flex items-center justify-center">
       {STEPS.map((step, index) => {
         const done = index < current
         const active = index === current
 
         return (
-          <div key={step} className="flex items-center">
+          <li
+            key={step}
+            className="flex items-center"
+            aria-current={active ? 'step' : undefined}
+          >
             <div className="flex flex-col items-center gap-1">
               <div
                 className={`flex h-[10px] w-[10px] items-center justify-center rounded-full border-2 transition-all duration-300 ${
@@ -102,10 +109,11 @@ function StepIndicator({ current }) {
                 }`}
               />
             ) : null}
-          </div>
+          </li>
         )
       })}
-    </div>
+      </ol>
+    </nav>
   )
 }
 
@@ -220,6 +228,9 @@ function OrderSummary({ cartItems, subtotal, shippingCost }) {
         <div className="mb-4 flex gap-2">
           <input
             type="text"
+            name="promoCode"
+            autoComplete="off"
+            maxLength={40}
             placeholder="Gift card or promo code"
             className="h-10 flex-1 rounded-[8px] border border-cappuccino bg-cream px-3 font-dm text-[12px] text-espresso outline-none transition-colors placeholder:text-caramel/50 focus:border-mocha"
           />
@@ -297,7 +308,10 @@ function InformationStep({ form, setForm, onNext }) {
   const errors = useMemo(() => validateInformation(form), [form])
 
   const setField = (key) => (event) =>
-    setForm((current) => ({ ...current, [key]: event.target.value }))
+    setForm((current) => ({
+      ...current,
+      [key]: sanitizeText(event.target.value),
+    }))
   const touch = (key) => () =>
     setTouched((current) => ({ ...current, [key]: true }))
   const shouldShow = (key) => touched[key] || submitted
@@ -541,7 +555,10 @@ function PaymentStep({ form, setForm, onSubmit, onBack, loading }) {
   const [submitted, setSubmitted] = useState(false)
   const errors = useMemo(() => validatePayment(form), [form])
   const setField = (key) => (event) =>
-    setForm((current) => ({ ...current, [key]: event.target.value }))
+    setForm((current) => ({
+      ...current,
+      [key]: sanitizeText(event.target.value),
+    }))
   const touch = (key) => () =>
     setTouched((current) => ({ ...current, [key]: true }))
   const shouldShow = (key) => touched[key] || submitted
@@ -662,6 +679,7 @@ export default function Checkout() {
   const cartItems = useStore((state) => state.cartItems)
   const subtotal = useStore((state) => state.cartTotal())
   const shippingCost = SHIPPING_METHODS[shippingMethod].price
+  const { guard } = useOnce()
 
   const handleOrder = () => {
     setLoading(true)
@@ -689,14 +707,14 @@ export default function Checkout() {
       key="payment"
       form={payment}
       setForm={setPayment}
-      onSubmit={handleOrder}
+      onSubmit={() => guard(handleOrder)}
       onBack={() => setStep(1)}
       loading={loading}
     />,
   ]
 
   return (
-    <main className="min-h-screen bg-cream">
+    <main className="min-h-screen bg-cream pt-[68px]">
       <SEO
         title="Checkout"
         description="Secure checkout for Little Essentials orders."

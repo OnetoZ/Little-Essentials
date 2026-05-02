@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Heart, Menu, Search, ShoppingBag, User, X } from 'lucide-react'
@@ -15,8 +15,6 @@ const NAV_LINKS = [
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false)
-  const [hidden, setHidden] = useState(false)
-  const previousScrollY = useRef(0)
   const location = useLocation()
 
   const {
@@ -30,10 +28,7 @@ export default function Navbar() {
   useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY
-
-      setScrolled(currentScrollY >= 40)
-      setHidden(currentScrollY > previousScrollY.current && currentScrollY > 100)
-      previousScrollY.current = currentScrollY
+      setScrolled(currentScrollY >= 20)
     }
 
     handleScroll()
@@ -54,6 +49,17 @@ export default function Navbar() {
     }
   }, [mobileMenuOpen])
 
+  useEffect(() => {
+    if (!mobileMenuOpen) return undefined
+
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') closeMobileMenu()
+    }
+
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [closeMobileMenu, mobileMenuOpen])
+
   const isActive = (path) => {
     const [pathname, queryString] = path.split('?')
 
@@ -64,21 +70,21 @@ export default function Navbar() {
     return location.pathname === pathname && location.search === ''
   }
 
-  const logoColor = scrolled ? 'text-espresso' : 'text-cream'
-  const iconColor = scrolled
+  const isHomePage = location.pathname === '/'
+  const shouldShowBackground = scrolled || !isHomePage
+  const logoColor = shouldShowBackground ? 'text-espresso' : 'text-cream'
+  const iconColor = shouldShowBackground
     ? 'text-espresso hover:text-mocha'
     : 'text-cream hover:text-cappuccino'
-  const linkColor = scrolled
+  const linkColor = shouldShowBackground
     ? 'text-espresso/80 hover:text-espresso'
     : 'text-cream/80 hover:text-cream'
 
   return (
     <>
       <motion.nav
-        animate={{ y: hidden ? '-100%' : '0%' }}
-        transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
         className={`fixed left-0 right-0 top-0 z-50 flex items-center justify-between px-5 transition-[height,background-color,border-color,box-shadow,backdrop-filter] duration-400 ease-premium lg:px-16 ${
-          scrolled
+          shouldShowBackground
             ? 'h-[68px] border-b border-cappuccino/40 bg-cream/95 shadow-[0_4px_24px_rgba(59,42,34,0.06)] backdrop-blur-md'
             : 'h-[80px] border-b border-transparent bg-transparent'
         }`}
@@ -167,6 +173,8 @@ export default function Navbar() {
             onClick={toggleMobileMenu}
             className={`${iconColor} transition-colors duration-300 ease-premium`}
             aria-label="Open menu"
+            aria-expanded={mobileMenuOpen}
+            aria-controls="mobile-menu"
             type="button"
           >
             <Menu size={22} strokeWidth={1.5} />
@@ -213,6 +221,9 @@ export default function Navbar() {
             exit={{ opacity: 0 }}
             transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
             className="fixed inset-0 z-[100] flex flex-col bg-espresso"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Mobile navigation menu"
           >
             <div className="flex justify-end p-8">
               <button
@@ -225,7 +236,11 @@ export default function Navbar() {
               </button>
             </div>
 
-            <nav className="flex flex-1 flex-col items-center justify-center gap-8">
+            <nav
+              id="mobile-menu"
+              aria-label="Mobile navigation"
+              className="flex flex-1 flex-col items-center justify-center gap-8"
+            >
               {NAV_LINKS.map((link, index) => (
                 <motion.div
                   key={link.label}
