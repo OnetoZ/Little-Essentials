@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import PropTypes from 'prop-types'
 import ProductCard from './ProductCard'
 import ProductCardSkeleton from './ProductCardSkeleton'
@@ -8,7 +9,7 @@ const GRID_COLUMNS = {
   4: 'lg:grid-cols-4',
 }
 
-export default function ProductGrid({
+function ProductGrid({
   products,
   loading = false,
   skeletonCount = 8,
@@ -85,3 +86,5 @@ ProductGrid.propTypes = {
   ).isRequired,
   skeletonCount: PropTypes.number,
 }
+
+export default memo(ProductGrid)

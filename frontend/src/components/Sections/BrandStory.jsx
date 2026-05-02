@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion'
 import Button from '../UI/Button'
+import SmartImage from '../UI/SmartImage'
 
 const STORY_IMAGE =
   'https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?w=900&q=85'
@@ -16,11 +17,11 @@ export default function BrandStory() {
             transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
             className="relative h-[320px] overflow-hidden lg:h-auto lg:w-[55%]"
           >
-            <img
+            <SmartImage
               src={STORY_IMAGE}
               alt="Little Essentials brand story"
-              className="h-full w-full object-cover object-center"
-              loading="lazy"
+              className="h-full w-full"
+              imageClassName="object-cover object-center"
             />
             <div className="absolute inset-0 bg-espresso/20" />
           </motion.div>

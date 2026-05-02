@@ -7,6 +7,7 @@ import CountdownTimer from '../components/OrderTracking/CountdownTimer'
 import DeliveryMap from '../components/OrderTracking/DeliveryMap'
 import ProgressTimeline from '../components/OrderTracking/ProgressTimeline'
 import RevealOnScroll from '../components/UI/RevealOnScroll'
+import SmartImage from '../components/UI/SmartImage'
 import useStore from '../store/useStore'
 
 const MOCK_ORDER = {
@@ -247,10 +248,10 @@ export default function OrderTracking() {
             <RevealOnScroll delay={0.15}>
               <div className="flex items-center gap-4 rounded-[16px] border border-cappuccino/30 bg-cream-light p-4">
                 <div className="h-20 w-20 flex-shrink-0 overflow-hidden rounded-[12px] bg-cappuccino">
-                  <img
+                  <SmartImage
                     src={MOCK_ORDER.product.image}
                     alt={MOCK_ORDER.product.name}
-                    className="h-full w-full object-cover"
+                    className="h-full w-full"
                   />
                 </div>
                 <div className="min-w-0 flex-1">
@@ -284,10 +285,10 @@ export default function OrderTracking() {
             <RevealOnScroll delay={0.15}>
               <div className="flex items-center gap-4 rounded-[16px] border border-cappuccino/30 bg-cream-light p-4">
                 <div className="h-20 w-20 flex-shrink-0 overflow-hidden rounded-[12px] bg-cappuccino">
-                  <img
+                  <SmartImage
                     src={MOCK_ORDER.product.image}
                     alt={MOCK_ORDER.product.name}
-                    className="h-full w-full object-cover"
+                    className="h-full w-full"
                   />
                 </div>
                 <div className="min-w-0 flex-1">

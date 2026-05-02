@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import FloatInput from '../components/UI/FloatInput'
+import SmartImage from '../components/UI/SmartImage'
 
 const LOGIN_BG =
   'https://images.unsplash.com/photo-1616401784845-180882ba9ba8?w=900&q=85'
@@ -52,10 +53,11 @@ export default function Login() {
   return (
     <main className="flex min-h-screen">
       <div className="relative hidden overflow-hidden bg-espresso lg:flex lg:w-1/2">
-        <img
+        <SmartImage
           src={LOGIN_BG}
           alt="Little Essentials"
-          className="h-full w-full object-cover opacity-70"
+          className="h-full w-full"
+          imageClassName="opacity-70"
         />
         <div
           className="absolute inset-0"

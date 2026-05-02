@@ -2,6 +2,7 @@ import PropTypes from 'prop-types'
 import { motion } from 'framer-motion'
 import { Minus, Plus, Trash2 } from 'lucide-react'
 import useStore from '../../store/useStore'
+import SmartImage from '../UI/SmartImage'
 
 export default function CartItem({ item }) {
   const { updateQty, removeFromCart } = useStore()
@@ -21,11 +22,10 @@ export default function CartItem({ item }) {
       className="flex gap-4 overflow-hidden py-5"
     >
       <div className="h-[80px] w-[80px] flex-shrink-0 overflow-hidden rounded-[8px] bg-cappuccino">
-        <img
-          src={item.images?.[0]}
+        <SmartImage
+          src={item.images?.[0] ?? ''}
           alt={item.name}
-          className="h-full w-full object-cover"
-          loading="lazy"
+          className="h-full w-full"
         />
       </div>
 
