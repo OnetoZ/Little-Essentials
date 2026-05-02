@@ -27,6 +27,18 @@ const PAGE_COPY = {
     title: 'Gift Cards',
     body: 'Gift cards are coming soon for considered presents, last-minute generosity, and beautifully flexible gifting.',
   },
+  '/privacy': {
+    title: 'Privacy Policy',
+    body: 'Privacy details will describe how Little Essentials protects customer data, order information, and communication preferences.',
+  },
+  '/terms': {
+    title: 'Terms of Service',
+    body: 'Terms will outline the conditions for using Little Essentials, purchasing products, and interacting with the platform.',
+  },
+  '/cookies': {
+    title: 'Cookie Policy',
+    body: 'Cookie details will explain essential site cookies, analytics choices, and preference controls for visitors.',
+  },
 }
 
 export default function InfoPage() {
@@ -37,7 +49,7 @@ export default function InfoPage() {
   )
 
   return (
-    <main className="min-h-screen bg-cream px-8 py-28 lg:px-16">
+    <main className="min-h-screen bg-cream px-8 pt-[100px] pb-28 lg:px-16">
       <SEO
         title={page.title}
         description={`${page.title} information for Little Essentials customers.`}

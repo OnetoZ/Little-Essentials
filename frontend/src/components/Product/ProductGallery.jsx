@@ -113,6 +113,7 @@ export default function ProductGallery({ images = [], productName = '' }) {
                 : 'opacity-60 hover:opacity-100'
             }`}
             aria-label={`Show thumbnail ${index + 1}`}
+            aria-pressed={index === activeIndex}
             type="button"
           >
             <SmartImage

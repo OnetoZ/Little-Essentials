@@ -40,7 +40,7 @@ function VehicleMarker({ x, y }) {
         fill="none"
         stroke="#B08968"
         strokeWidth="2"
-        animate={{ r: [28, 42, 28], opacity: [0.8, 0, 0.8] }}
+        animate={{ scale: [1, 1.5, 1], opacity: [0.8, 0, 0.8] }}
         transition={{ duration: 2, repeat: Infinity, ease: 'easeOut' }}
       />
       <circle

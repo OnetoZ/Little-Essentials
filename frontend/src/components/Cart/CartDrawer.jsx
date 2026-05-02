@@ -205,6 +205,7 @@ export default function CartDrawer() {
                 onClick={closeCart}
                 className="flex items-center gap-1 font-dm text-[12px] text-caramel transition-colors duration-250 ease-smooth hover:text-espresso"
                 type="button"
+                aria-label="Close shopping bag"
               >
                 <X size={16} />
                 <span className="hidden sm:inline">Close</span>
