@@ -32,6 +32,18 @@
     cursor: pointer;
   }
 
+  @media (pointer: fine) and (min-width: 1024px) {
+    body,
+    a,
+    button,
+    [role='button'],
+    input,
+    select,
+    textarea {
+      cursor: none;
+    }
+  }
+
   ::-webkit-scrollbar {
     width: 6px;
   }
