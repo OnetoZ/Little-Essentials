@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react'
-import { BrowserRouter, Route, Routes } from 'react-router-dom'
+import { BrowserRouter, Route, Routes, useLocation } from 'react-router-dom'
 import Footer from './components/Footer/Footer'
 import Navbar from './components/Navbar/Navbar'
 import CustomCursor from './components/UI/CustomCursor'
@@ -30,6 +30,9 @@ function RouteFallback() {
 
 
 function AppRoutes() {
+  const location = useLocation()
+  const hideFooter = location.pathname === '/login'
+
   return (
     <>
       <ScrollProgressBar />
@@ -71,7 +74,7 @@ function AppRoutes() {
           </PageTransition>
         </div>
       </Suspense>
-      <Footer />
+      {!hideFooter ? <Footer /> : null}
     </>
   )
 }

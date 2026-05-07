@@ -14,8 +14,8 @@ export default {
         'espresso-4': 'rgba(59, 42, 34, 0.04)',
       },
       fontFamily: {
-        playfair: ['"Playfair Display"', 'serif'],
-        dm: ['"DM Sans"', 'sans-serif'],
+        playfair: ['"Cormorant Garamond"', 'serif'],
+        dm: ['"Manrope"', 'sans-serif'],
       },
       letterSpacing: {
         ultra: '0.25em',

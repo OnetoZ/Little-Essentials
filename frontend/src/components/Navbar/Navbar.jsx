@@ -4,16 +4,18 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { Heart, Menu, Search, ShoppingBag, User, X } from 'lucide-react'
 import CartDrawer from '../Cart/CartDrawer'
 import useStore from '../../store/useStore'
+import { categories } from '../../data/mockProducts'
 
 const NAV_LINKS = [
   { label: 'Home', path: '/' },
-  { label: 'Collections', path: '/collections' },
+  { label: 'Collections', path: '/collections', preview: true },
   { label: 'New Arrivals', path: '/collections?filter=new' },
   { label: 'About', path: '/about' },
   { label: 'Journal', path: '/journal' },
 ]
 
 export default function Navbar() {
+  const [previewOpen, setPreviewOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const location = useLocation()
 
@@ -70,40 +72,38 @@ export default function Navbar() {
     return location.pathname === pathname && location.search === ''
   }
 
-  const isHomePage = location.pathname === '/'
-  const shouldShowBackground = scrolled || !isHomePage
-  const logoColor = shouldShowBackground ? 'text-espresso' : 'text-cream'
-  const iconColor = shouldShowBackground
-    ? 'text-espresso hover:text-mocha'
-    : 'text-cream hover:text-cappuccino'
-  const linkColor = shouldShowBackground
-    ? 'text-espresso/80 hover:text-espresso'
-    : 'text-cream/80 hover:text-cream'
+  const logoColor = 'text-espresso'
+  const iconColor = 'text-espresso hover:text-mocha'
+  const linkColor = 'text-espresso/80 hover:text-espresso'
 
   return (
     <>
       <motion.nav
-        className={`fixed left-0 right-0 top-0 z-50 flex items-center justify-between px-5 transition-[height,background-color,border-color,box-shadow,backdrop-filter] duration-400 ease-premium lg:px-16 ${
-          shouldShowBackground
-            ? 'h-[68px] border-b border-cappuccino/40 bg-cream/95 shadow-[0_4px_24px_rgba(59,42,34,0.06)] backdrop-blur-md'
-            : 'h-[80px] border-b border-transparent bg-transparent'
+        className={`fixed left-1/2 top-4 z-50 flex w-[calc(100%-24px)] max-w-[1440px] -translate-x-1/2 items-center justify-between rounded-full border border-cappuccino/55 bg-cream-light/90 px-5 shadow-[0_18px_60px_rgba(59,42,34,0.12)] backdrop-blur-2xl transition-[height,background-color,border-color,box-shadow,backdrop-filter,top] duration-400 ease-premium lg:w-[calc(100%-64px)] lg:px-7 ${
+          scrolled ? 'h-[60px] bg-cream-light/96' : 'h-[68px]'
         }`}
       >
         <Link
           to="/"
-          className={`hidden flex-shrink-0 font-playfair text-[22px] transition-colors duration-300 ease-premium lg:block ${logoColor}`}
+          className={`hidden flex-shrink-0 font-playfair text-[25px] font-bold tracking-normal transition-all duration-300 ease-premium hover:scale-[1.02] lg:block ${logoColor}`}
           aria-label="Little Essentials home"
         >
           <span className="font-normal italic">Little</span>
           <span className="ml-1 font-bold">Essentials</span>
         </Link>
 
-        <ul className="hidden items-center gap-8 lg:flex">
+        <ul className="hidden items-center gap-2 rounded-full border border-cappuccino/35 bg-cream/60 px-2 py-1 lg:flex">
           {NAV_LINKS.map((link) => (
-            <li key={link.label}>
+            <li
+              key={link.label}
+              className="relative"
+              onMouseEnter={() => link.preview && setPreviewOpen(true)}
+              onMouseLeave={() => link.preview && setPreviewOpen(false)}
+            >
               <Link
                 to={link.path}
-                className={`group relative font-dm text-[13px] font-medium tracking-wide-2 transition-colors duration-300 ease-premium ${linkColor}`}
+                className={`group relative inline-flex rounded-full px-4 py-2 font-dm text-[12px] font-semibold tracking-wide-2 transition-all duration-300 ease-premium hover:bg-cappuccino/22 ${linkColor}`}
+                aria-expanded={link.preview ? previewOpen : undefined}
               >
                 {link.label}
                 <motion.span
@@ -115,13 +115,54 @@ export default function Navbar() {
                   transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
                 />
               </Link>
+              {link.preview ? (
+                <AnimatePresence>
+                  {previewOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10, scale: 0.98 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: 8, scale: 0.98 }}
+                      transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+                      className="absolute left-1/2 top-12 w-[460px] -translate-x-1/2 rounded-[22px] border border-cappuccino/45 bg-cream-light/96 p-4 shadow-[0_24px_70px_rgba(59,42,34,0.16)] backdrop-blur-xl"
+                    >
+                      <div className="mb-4 flex items-center justify-between border-b border-cappuccino/35 pb-3">
+                        <p className="font-dm text-[10px] font-medium uppercase tracking-ultra text-caramel">
+                          Shop by ritual
+                        </p>
+                        <Link
+                          to="/collections"
+                          className="font-dm text-[12px] text-mocha underline underline-offset-4 hover:text-espresso"
+                        >
+                          View all
+                        </Link>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2">
+                        {categories.slice(1).map((category) => (
+                          <Link
+                            key={category}
+                            to={`/collections?category=${encodeURIComponent(category)}`}
+                            className="group/preview rounded-[16px] border border-transparent bg-cream px-4 py-3 transition-all duration-250 ease-smooth hover:border-cappuccino hover:bg-cream-light"
+                          >
+                            <span className="block font-playfair text-[18px] font-bold text-espresso transition-colors duration-250 group-hover/preview:text-mocha">
+                              {category}
+                            </span>
+                            <span className="mt-1 block font-dm text-[11px] text-caramel">
+                              Explore edit →
+                            </span>
+                          </Link>
+                        ))}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              ) : null}
             </li>
           ))}
         </ul>
 
-        <div className="hidden items-center gap-5 lg:flex">
+        <div className="hidden items-center gap-2 rounded-full border border-cappuccino/35 bg-cream/60 px-2 py-1 lg:flex">
           <button
-            className={`${iconColor} transition-all duration-300 ease-premium hover:scale-110`}
+            className={`flex h-9 w-9 items-center justify-center rounded-full ${iconColor} transition-all duration-300 ease-premium hover:scale-105 hover:bg-cappuccino/22`}
             aria-label="Search"
             type="button"
           >
@@ -129,7 +170,7 @@ export default function Navbar() {
           </button>
 
           <button
-            className={`${iconColor} transition-all duration-300 ease-premium hover:scale-110`}
+            className={`flex h-9 w-9 items-center justify-center rounded-full ${iconColor} transition-all duration-300 ease-premium hover:scale-105 hover:bg-cappuccino/22`}
             aria-label="Wishlist"
             type="button"
           >
@@ -138,7 +179,7 @@ export default function Navbar() {
 
           <button
             onClick={toggleCart}
-            className={`relative ${iconColor} transition-all duration-300 ease-premium hover:scale-110`}
+            className={`relative flex h-9 w-9 items-center justify-center rounded-full ${iconColor} transition-all duration-300 ease-premium hover:scale-105 hover:bg-cappuccino/22`}
             aria-label={`Open cart with ${count} items`}
             type="button"
           >
@@ -161,7 +202,7 @@ export default function Navbar() {
 
           <Link
             to="/login"
-            className={`${iconColor} transition-all duration-300 ease-premium hover:scale-110`}
+            className={`flex h-9 w-9 items-center justify-center rounded-full ${iconColor} transition-all duration-300 ease-premium hover:scale-105 hover:bg-cappuccino/22`}
             aria-label="Login"
           >
             <User size={20} strokeWidth={1.5} />
@@ -171,7 +212,7 @@ export default function Navbar() {
         <div className="flex w-full items-center justify-between lg:hidden">
           <button
             onClick={toggleMobileMenu}
-            className={`${iconColor} transition-colors duration-300 ease-premium`}
+            className={`${iconColor} transition-all duration-300 ease-premium active:scale-95`}
             aria-label="Open menu"
             aria-expanded={mobileMenuOpen}
             aria-controls="mobile-menu"
@@ -190,7 +231,7 @@ export default function Navbar() {
 
           <button
             onClick={toggleCart}
-            className={`relative ${iconColor} transition-colors duration-300 ease-premium`}
+            className={`relative ${iconColor} transition-all duration-300 ease-premium active:scale-95`}
             aria-label={`Open cart with ${count} items`}
             type="button"
           >

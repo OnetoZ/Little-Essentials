@@ -16,19 +16,21 @@ export default function AvailableNow() {
           transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
         >
           <SectionHeader
-            number="02"
+            number="05"
             label="Available Now"
+            title="A quieter way to shop premium."
+            description="Browse the edit by mood and category, with quick actions for the products already in stock."
             viewAllLink="/collections"
           />
         </motion.div>
 
-        <div className="grid grid-cols-2 gap-4 lg:grid-cols-[1fr_0.82fr_1fr] lg:grid-rows-2 lg:gap-5">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-[1.08fr_0.82fr_1fr] lg:grid-rows-2 lg:gap-5">
           <motion.div
             initial={{ opacity: 0, y: 32 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-            className="col-span-1 lg:row-span-2"
+            className="lg:row-span-2"
           >
             <ProductCard
               product={featured[0]}
@@ -72,7 +74,7 @@ export default function AvailableNow() {
               duration: 0.7,
               ease: [0.16, 1, 0.3, 1],
             }}
-            className="col-span-2 lg:col-span-1 lg:row-span-2"
+            className="sm:col-span-2 lg:col-span-1 lg:row-span-2"
           >
             <ProductCard
               product={featured[3]}

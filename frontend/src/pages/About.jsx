@@ -1,62 +1,57 @@
-import { useRef } from 'react'
 import { Link } from 'react-router-dom'
-import { motion, useScroll, useTransform } from 'framer-motion'
-import { ArrowRight, Heart, Leaf, Sparkles, Star } from 'lucide-react'
+import { motion } from 'framer-motion'
+import { ArrowRight, Check, Gem, Leaf, ShieldCheck, Sparkles } from 'lucide-react'
 import SEO from '../components/SEO/SEO'
-import RevealOnScroll from '../components/UI/RevealOnScroll'
+import SmartImage from '../components/UI/SmartImage'
 
-const HERO_IMAGE =
-  'https://images.unsplash.com/photo-1616401784845-180882ba9ba8?w=1800&q=90'
-const STORY_IMAGE =
-  'https://images.unsplash.com/photo-1567016432779-094069958ea5?w=900&q=85'
-const CRAFT_IMAGE =
-  'https://images.unsplash.com/photo-1612521564730-62fc7691cd85?w=900&q=85'
+const IMAGES = {
+  hero:
+    'https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?w=1300&q=88',
+  detail:
+    'https://images.unsplash.com/photo-1604014237800-1c9102c219da?w=900&q=86',
+  studio:
+    'https://images.unsplash.com/photo-1567016432779-094069958ea5?w=900&q=86',
+  process:
+    'https://images.unsplash.com/photo-1612521564730-62fc7691cd85?w=900&q=86',
+}
 
-const VALUES = [
+const NUMBERS = [
+  ['500+', 'Curated products'],
+  ['18K+', 'Thoughtful customers'],
+  ['50+', 'Partner brands'],
+  ['4.9', 'Average rating'],
+]
+
+const PRINCIPLES = [
   {
     icon: Sparkles,
-    title: 'Intentional Curation',
-    desc: 'Every product earns its place. We reject the noise, surface only what genuinely elevates everyday life.',
+    title: 'Curated, never crowded',
+    text: 'Every piece has a reason to exist in the edit. The store stays calm by design.',
+  },
+  {
+    icon: Gem,
+    title: 'Material intelligence',
+    text: 'Texture, finish, usefulness, and longevity matter more than trend cycles.',
   },
   {
     icon: Leaf,
-    title: 'Considered Sourcing',
-    desc: 'We partner with makers and brands who share our belief that how something is made is as important as what it does.',
+    title: 'Slow-shopping energy',
+    text: 'We help customers choose fewer, better objects they actually want to keep.',
   },
   {
-    icon: Heart,
-    title: 'Quiet Luxury',
-    desc: 'Beauty without ostentation. Functionality without compromise. Objects that belong in a life well lived.',
-  },
-  {
-    icon: Star,
-    title: 'Enduring Quality',
-    desc: 'We choose goods designed to last — not for a season, but for years. Timeless over trendy, always.',
+    icon: ShieldCheck,
+    title: 'Trust in the details',
+    text: 'Packaging, delivery, returns, and after-care are treated as part of the product.',
   },
 ]
 
-const NUMBERS = [
-  { value: '200+', label: 'Curated Products' },
-  { value: '18K+', label: 'Happy Customers' },
-  { value: '50+', label: 'Partner Brands' },
-  { value: '4.9★', label: 'Average Rating' },
+const STEPS = [
+  'Discover makers and brands with a clear point of view.',
+  'Test products for feel, function, finish, and daily relevance.',
+  'Build small edits that help shoppers decide with confidence.',
 ]
-
-const FADE_UP = {
-  hidden: { opacity: 0, y: 32 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] } },
-}
-
-const STAGGER = {
-  hidden: {},
-  show: { transition: { staggerChildren: 0.12, delayChildren: 0.2 } },
-}
 
 export default function About() {
-  const heroRef = useRef(null)
-  const { scrollY } = useScroll()
-  const bgY = useTransform(scrollY, [0, 600], ['0%', '30%'])
-
   return (
     <main className="overflow-x-hidden bg-cream">
       <SEO
@@ -66,326 +61,242 @@ export default function About() {
         keywords="about little essentials, little essentials india, premium curated lifestyle store, luxury lifestyle store india"
       />
 
-      {/* ── HERO ── */}
-      <section
-        ref={heroRef}
-        className="relative flex min-h-[92vh] items-center justify-center overflow-hidden"
-      >
-        <motion.div
-          style={{ y: bgY }}
-          className="absolute inset-0 scale-110 will-change-transform"
-        >
-          <img
-            src={HERO_IMAGE}
-            alt="Little Essentials store interior"
-            className="h-full w-full object-cover object-center"
-          />
-        </motion.div>
-
-        {/* Gradient overlays */}
+      <section className="relative overflow-hidden px-8 pb-20 pt-32 lg:px-16 lg:pb-28 lg:pt-36">
         <div
-          className="pointer-events-none absolute inset-0"
+          className="absolute inset-0 opacity-[0.04]"
           style={{
-            background:
-              'linear-gradient(to bottom, rgba(59,42,34,0.35) 0%, rgba(59,42,34,0.72) 60%, rgba(59,42,34,0.92) 100%)',
+            backgroundImage:
+              'linear-gradient(rgba(59,42,34,1) 1px, transparent 1px), linear-gradient(90deg, rgba(59,42,34,1) 1px, transparent 1px)',
+            backgroundSize: '72px 72px',
           }}
         />
 
-        <motion.div
-          variants={STAGGER}
-          initial="hidden"
-          animate="show"
-          className="relative z-10 mx-auto max-w-screen-md px-8 text-center"
-        >
-          <motion.p
-            variants={FADE_UP}
-            className="mb-5 font-dm text-[11px] font-medium uppercase tracking-[0.22em] text-caramel"
-          >
-            Est. 2024 · India
-          </motion.p>
-
-          <motion.h1
-            variants={FADE_UP}
-            className="mb-6 font-playfair text-[clamp(52px,9vw,96px)] font-black leading-[0.92] text-cream"
-          >
-            Curation
-            <br />
-            <span className="italic font-normal">over clutter.</span>
-          </motion.h1>
-
-          <motion.p
-            variants={FADE_UP}
-            className="mx-auto mb-10 max-w-[480px] font-dm text-[17px] font-light leading-[1.8] text-cream/70"
-          >
-            Little Essentials exists to surface the world&apos;s most considered goods —
-            chosen for materiality, usefulness, longevity, and the quiet pleasure
-            they bring to everyday life.
-          </motion.p>
-
-          <motion.div variants={FADE_UP} className="flex justify-center gap-4">
-            <Link
-              to="/collections"
-              className="inline-flex items-center gap-2 rounded-[3px] bg-caramel px-8 py-4 font-dm text-[13px] font-medium text-cream transition-all duration-300 hover:bg-mocha hover:gap-3"
-            >
-              Shop the Edit <ArrowRight size={16} />
-            </Link>
-            <Link
-              to="/journal"
-              className="inline-flex items-center gap-2 rounded-[3px] border border-cream/40 px-8 py-4 font-dm text-[13px] font-medium text-cream transition-all duration-300 hover:border-cream/80 hover:bg-cream/10"
-            >
-              Read the Journal
-            </Link>
-          </motion.div>
-        </motion.div>
-
-        {/* Scroll indicator */}
-        <div className="absolute bottom-10 left-1/2 flex -translate-x-1/2 flex-col items-center gap-2">
-          <div className="h-10 w-[1.5px] bg-caramel/60" />
+        <div className="relative z-10 mx-auto grid max-w-screen-xl gap-12 lg:grid-cols-[0.88fr_1.12fr] lg:items-end">
           <motion.div
-            animate={{ y: [0, 6, 0] }}
-            transition={{ duration: 1.6, repeat: Infinity, ease: 'easeInOut' }}
+            initial={{ opacity: 0, y: 28 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.75, ease: [0.16, 1, 0.3, 1] }}
           >
-            <div className="h-2 w-2 rotate-45 border-b border-r border-caramel" />
-          </motion.div>
-        </div>
-      </section>
-
-      {/* ── NUMBERS ── */}
-      <section className="border-y border-cappuccino/40 bg-cream py-16">
-        <div className="mx-auto max-w-screen-xl px-8 lg:px-16">
-          <div className="grid grid-cols-2 gap-y-10 lg:grid-cols-4">
-            {NUMBERS.map((item, i) => (
-              <RevealOnScroll key={item.label}>
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: i * 0.1, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-                  className="text-center"
-                >
-                  <p className="mb-1 font-playfair text-[clamp(36px,5vw,56px)] font-black leading-none text-espresso">
-                    {item.value}
-                  </p>
-                  <p className="font-dm text-[12px] uppercase tracking-[0.18em] text-caramel">
-                    {item.label}
-                  </p>
-                </motion.div>
-              </RevealOnScroll>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── ORIGIN STORY ── */}
-      <section className="mx-auto max-w-screen-xl px-8 py-24 lg:px-16 lg:py-36">
-        <div className="grid items-center gap-16 lg:grid-cols-2">
-          <RevealOnScroll>
-            <div className="relative">
-              <div className="overflow-hidden rounded-[4px] shadow-[0_24px_80px_rgba(59,42,34,0.12)]">
-                <motion.img
-                  whileHover={{ scale: 1.04 }}
-                  transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-                  src={STORY_IMAGE}
-                  alt="The Little Essentials story"
-                  className="w-full object-cover"
-                  style={{ aspectRatio: '4/5' }}
-                />
-              </div>
-              {/* Decorative accent */}
-              <div className="absolute -bottom-6 -right-6 -z-10 h-40 w-40 rounded-full bg-cappuccino/40" />
-              <div className="absolute -left-4 -top-4 -z-10 h-24 w-24 rounded-full bg-caramel/20" />
-              {/* Floating label */}
-              <div className="absolute -right-4 top-8 rounded-[4px] bg-espresso px-5 py-3 shadow-lg">
-                <p className="font-dm text-[10px] uppercase tracking-ultra text-caramel">Founded</p>
-                <p className="font-playfair text-[20px] font-bold text-cream">2024</p>
-              </div>
-            </div>
-          </RevealOnScroll>
-
-          <RevealOnScroll>
-            <div>
-              <p className="mb-4 font-dm text-[11px] font-medium uppercase tracking-[0.22em] text-caramel">
-                Our Origin
-              </p>
-              <h2 className="mb-6 font-playfair text-[clamp(36px,4.5vw,56px)] font-black leading-[1.05] text-espresso">
-                Born from a belief that everyday objects matter.
-              </h2>
-              <div className="space-y-5 font-dm text-[15px] font-light leading-[1.9] text-mocha">
-                <p>
-                  Little Essentials began as a simple frustration: why was it so hard
-                  to find objects that were both beautiful <em>and</em> genuinely useful?
-                  Products that felt worth owning, not just worth buying?
-                </p>
-                <p>
-                  We set out to answer that question — spending months sourcing from
-                  the world&apos;s most considered makers, visiting studios, testing
-                  materials, and learning from craftspeople who dedicate their lives to
-                  making things right.
-                </p>
-                <p>
-                  Today, Little Essentials curates the finest skincare, home goods,
-                  fragrance, and stationery — each product chosen because it earns a
-                  permanent place in a thoughtful life.
-                </p>
-              </div>
-
-              <div className="mt-10 border-l-2 border-caramel pl-6">
-                <p className="font-playfair text-[18px] italic leading-[1.6] text-espresso">
-                  &ldquo;The best things in life are small, considered, and quietly
-                  extraordinary.&rdquo;
-                </p>
-                <p className="mt-3 font-dm text-[12px] uppercase tracking-ultra text-caramel">
-                  — Sriman, Founder
-                </p>
-              </div>
-            </div>
-          </RevealOnScroll>
-        </div>
-      </section>
-
-      {/* ── VALUES ── */}
-      <section className="bg-espresso py-24 lg:py-36">
-        <div className="mx-auto max-w-screen-xl px-8 lg:px-16">
-          <RevealOnScroll>
-            <div className="mb-16 text-center">
-              <p className="mb-4 font-dm text-[11px] font-medium uppercase tracking-[0.22em] text-caramel">
-                What We Stand For
-              </p>
-              <h2 className="font-playfair text-[clamp(36px,5vw,60px)] font-black leading-[1.05] text-cream">
-                The principles behind
-                <br />
-                <span className="italic font-normal">every decision we make.</span>
-              </h2>
-            </div>
-          </RevealOnScroll>
-
-          <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
-            {VALUES.map((value, i) => (
-              <RevealOnScroll key={value.title}>
-                <motion.div
-                  initial={{ opacity: 0, y: 24 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: i * 0.1, duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-                  whileHover={{ y: -6 }}
-                  className="group rounded-[8px] border border-cream/[0.08] bg-cream/[0.04] p-8 transition-all duration-300 hover:border-caramel/30 hover:bg-cream/[0.07]"
-                >
-                  <div className="mb-5 inline-flex h-12 w-12 items-center justify-center rounded-full bg-caramel/15 transition-colors duration-300 group-hover:bg-caramel/25">
-                    <value.icon size={22} className="text-caramel" />
-                  </div>
-                  <h3 className="mb-3 font-playfair text-[18px] font-bold text-cream">
-                    {value.title}
-                  </h3>
-                  <p className="font-dm text-[14px] font-light leading-[1.8] text-cream/55">
-                    {value.desc}
-                  </p>
-                </motion.div>
-              </RevealOnScroll>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── CRAFT SECTION ── */}
-      <section className="mx-auto max-w-screen-xl px-8 py-24 lg:px-16 lg:py-36">
-        <div className="grid items-center gap-16 lg:grid-cols-2">
-          <RevealOnScroll>
-            <div>
-              <p className="mb-4 font-dm text-[11px] font-medium uppercase tracking-[0.22em] text-caramel">
-                Our Process
-              </p>
-              <h2 className="mb-6 font-playfair text-[clamp(36px,4.5vw,56px)] font-black leading-[1.05] text-espresso">
-                Each product chosen
-                <br />
-                <span className="italic font-normal">by human hands.</span>
-              </h2>
-              <div className="space-y-5 font-dm text-[15px] font-light leading-[1.9] text-mocha">
-                <p>
-                  Our team personally tests every product before it appears in the edit.
-                  No algorithm. No sponsored placements. Just honest assessment of
-                  materials, performance, and the feeling something gives you in daily use.
-                </p>
-                <p>
-                  We apply five criteria: quality of materials, longevity, experience of
-                  use, design integrity, and sustainable practices. A product that passes
-                  all five earns a place on Little Essentials.
-                </p>
-              </div>
-
-              <div className="mt-10 grid grid-cols-3 gap-4">
-                {[
-                  { step: '01', label: 'Discovery' },
-                  { step: '02', label: 'Evaluation' },
-                  { step: '03', label: 'Curation' },
-                ].map((item) => (
-                  <div key={item.step} className="rounded-[6px] bg-cappuccino/30 p-5 text-center">
-                    <p className="mb-1 font-playfair text-[24px] font-black text-caramel">
-                      {item.step}
-                    </p>
-                    <p className="font-dm text-[12px] uppercase tracking-ultra text-espresso">
-                      {item.label}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </RevealOnScroll>
-
-          <RevealOnScroll>
-            <div className="relative">
-              <div className="overflow-hidden rounded-[4px] shadow-[0_24px_80px_rgba(59,42,34,0.12)]">
-                <motion.img
-                  whileHover={{ scale: 1.04 }}
-                  transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-                  src={CRAFT_IMAGE}
-                  alt="Craftsmanship and curation process"
-                  className="w-full object-cover"
-                  style={{ aspectRatio: '4/5' }}
-                />
-              </div>
-              <div className="absolute -bottom-6 -left-6 -z-10 h-40 w-40 rounded-full bg-caramel/20" />
-            </div>
-          </RevealOnScroll>
-        </div>
-      </section>
-
-      {/* ── CTA ── */}
-      <section className="relative overflow-hidden bg-cappuccino/30 py-28">
-        <div
-          className="pointer-events-none absolute inset-0 opacity-[0.03]"
-          style={{
-            backgroundImage: `linear-gradient(rgba(59,42,34,1) 1px, transparent 1px), linear-gradient(90deg, rgba(59,42,34,1) 1px, transparent 1px)`,
-            backgroundSize: '60px 60px',
-          }}
-        />
-        <RevealOnScroll>
-          <div className="relative z-10 mx-auto max-w-screen-md px-8 text-center">
-            <p className="mb-4 font-dm text-[11px] font-medium uppercase tracking-[0.22em] text-caramel">
-              Start exploring
+            <p className="mb-5 font-dm text-[11px] font-semibold uppercase tracking-ultra text-caramel">
+              About the edit
             </p>
-            <h2 className="mb-6 font-playfair text-[clamp(40px,6vw,72px)] font-black leading-[1.0] text-espresso">
-              Find something worth keeping.
-            </h2>
-            <p className="mx-auto mb-10 max-w-[420px] font-dm text-[16px] font-light leading-[1.8] text-mocha">
-              Browse our full edit of premium, considered goods — delivered with care
-              to your door across India.
+            <h1 className="font-playfair text-[clamp(62px,11vw,132px)] font-bold leading-[0.8] text-espresso">
+              Curation over clutter.
+            </h1>
+            <p className="mt-8 max-w-[540px] font-dm text-[17px] font-light leading-[1.85] text-mocha/78">
+              Little Essentials is built for people who want fewer choices, made
+              better. We collect premium skincare, home, fragrance, stationery,
+              and accessories into a calm, useful, highly edited shop.
             </p>
-            <div className="flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
+            <div className="mt-9 flex flex-col gap-3 sm:flex-row">
               <Link
                 to="/collections"
-                className="inline-flex items-center gap-2 rounded-[3px] bg-espresso px-10 py-4 font-dm text-[13px] font-medium text-cream transition-all duration-300 hover:bg-mocha hover:gap-3"
+                className="inline-flex items-center justify-center gap-2 rounded-full bg-espresso px-8 py-4 font-dm text-[13px] font-semibold text-cream transition-all duration-300 hover:bg-mocha"
               >
-                Shop All Collections <ArrowRight size={16} />
+                Shop the Edit <ArrowRight size={15} />
               </Link>
               <Link
                 to="/journal"
-                className="inline-flex items-center gap-2 rounded-[3px] border border-espresso/30 px-10 py-4 font-dm text-[13px] font-medium text-espresso transition-all duration-300 hover:border-espresso hover:bg-espresso/5"
+                className="inline-flex items-center justify-center gap-2 rounded-full border border-cappuccino px-8 py-4 font-dm text-[13px] font-semibold text-espresso transition-all duration-300 hover:border-caramel hover:bg-cream-light"
               >
                 Read the Journal
               </Link>
             </div>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 34 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.12, duration: 0.82, ease: [0.16, 1, 0.3, 1] }}
+            className="relative min-h-[600px]"
+          >
+            <div className="absolute right-0 top-0 h-[72%] w-[70%] overflow-hidden rounded-[30px] shadow-[0_28px_90px_rgba(59,42,34,0.18)]">
+              <SmartImage
+                src={IMAGES.hero}
+                alt="Little Essentials interior mood"
+                className="h-full w-full"
+                imageClassName="object-cover object-center"
+                priority
+              />
+            </div>
+            <div className="absolute bottom-0 left-0 w-[48%] overflow-hidden rounded-[26px] border border-cream/70 bg-cream-light shadow-[0_24px_70px_rgba(59,42,34,0.16)]">
+              <SmartImage
+                src={IMAGES.detail}
+                alt="Considered home detail"
+                className="aspect-[4/5] w-full"
+                imageClassName="object-cover object-center"
+              />
+              <div className="p-5">
+                <p className="font-dm text-[10px] uppercase tracking-ultra text-caramel">
+                  Founder note
+                </p>
+                <p className="mt-2 font-playfair text-[25px] font-bold leading-tight text-espresso">
+                  Small things shape the feeling of a life.
+                </p>
+              </div>
+            </div>
+            <div className="absolute bottom-[18%] right-[10%] max-w-[230px] rounded-[22px] border border-cappuccino/60 bg-cream-light/88 p-5 shadow-[0_18px_54px_rgba(59,42,34,0.12)] backdrop-blur-xl">
+              <p className="font-playfair text-[44px] font-bold leading-none text-espresso">
+                4.9
+              </p>
+              <p className="mt-2 font-dm text-[11px] uppercase tracking-ultra text-caramel">
+                Average customer rating
+              </p>
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
+      <section className="border-y border-cappuccino/45 bg-cream-light px-8 py-10 lg:px-16">
+        <div className="mx-auto grid max-w-screen-xl grid-cols-2 gap-6 lg:grid-cols-4">
+          {NUMBERS.map(([value, label], index) => (
+            <motion.div
+              key={label}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: '-70px' }}
+              transition={{
+                delay: index * 0.06,
+                duration: 0.6,
+                ease: [0.16, 1, 0.3, 1],
+              }}
+              className="py-4"
+            >
+              <p className="font-playfair text-[clamp(42px,6vw,72px)] font-bold leading-none text-espresso">
+                {value}
+              </p>
+              <p className="mt-2 font-dm text-[10px] uppercase tracking-ultra text-caramel">
+                {label}
+              </p>
+            </motion.div>
+          ))}
+        </div>
+      </section>
+
+      <section className="bg-espresso px-8 py-20 lg:px-16 lg:py-28">
+        <div className="mx-auto grid max-w-screen-xl gap-12 lg:grid-cols-[0.9fr_1.1fr] lg:items-start">
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: '-80px' }}
+            transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+          >
+            <p className="mb-5 font-dm text-[11px] font-semibold uppercase tracking-ultra text-caramel">
+              What makes us different
+            </p>
+            <h2 className="max-w-[560px] font-playfair text-[clamp(46px,8vw,96px)] font-bold leading-[0.86] text-cream">
+              Designed like a store. Edited like a magazine.
+            </h2>
+          </motion.div>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            {PRINCIPLES.map((item, index) => {
+              const Icon = item.icon
+
+              return (
+                <motion.div
+                  key={item.title}
+                  initial={{ opacity: 0, y: 26 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: '-70px' }}
+                  transition={{
+                    delay: index * 0.08,
+                    duration: 0.65,
+                    ease: [0.16, 1, 0.3, 1],
+                  }}
+                  className="rounded-[24px] border border-cream/10 bg-cream/[0.045] p-6 transition-colors duration-300 hover:bg-cream/[0.07]"
+                >
+                  <Icon size={20} className="mb-8 text-caramel" strokeWidth={1.7} />
+                  <h3 className="font-playfair text-[28px] font-bold leading-none text-cream">
+                    {item.title}
+                  </h3>
+                  <p className="mt-4 font-dm text-[14px] font-light leading-[1.75] text-cream/58">
+                    {item.text}
+                  </p>
+                </motion.div>
+              )
+            })}
           </div>
-        </RevealOnScroll>
+        </div>
+      </section>
+
+      <section className="px-8 py-20 lg:px-16 lg:py-28">
+        <div className="mx-auto grid max-w-screen-xl gap-10 lg:grid-cols-[1.08fr_0.92fr] lg:items-center">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: '-80px' }}
+            transition={{ duration: 0.75, ease: [0.16, 1, 0.3, 1] }}
+            className="grid gap-4 sm:grid-cols-[0.78fr_1fr]"
+          >
+            <SmartImage
+              src={IMAGES.studio}
+              alt="Little Essentials studio"
+              className="aspect-[4/5] rounded-[28px]"
+              imageClassName="object-cover object-center"
+            />
+            <SmartImage
+              src={IMAGES.process}
+              alt="Little Essentials curation process"
+              className="aspect-[4/5] rounded-[28px] sm:translate-y-12"
+              imageClassName="object-cover object-center"
+            />
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: '-80px' }}
+            transition={{ delay: 0.08, duration: 0.75, ease: [0.16, 1, 0.3, 1] }}
+          >
+            <p className="mb-5 font-dm text-[11px] font-semibold uppercase tracking-ultra text-caramel">
+              Our process
+            </p>
+            <h2 className="font-playfair text-[clamp(44px,7vw,86px)] font-bold leading-[0.88] text-espresso">
+              Every product earns the shelf.
+            </h2>
+            <div className="mt-9 space-y-4">
+              {STEPS.map((step, index) => (
+                <div
+                  key={step}
+                  className="grid grid-cols-[42px_1fr] items-start border-t border-cappuccino/55 py-5"
+                >
+                  <span className="flex h-7 w-7 items-center justify-center rounded-full bg-espresso text-cream">
+                    <Check size={14} strokeWidth={2} />
+                  </span>
+                  <p className="font-dm text-[15px] font-light leading-[1.75] text-mocha/80">
+                    {index + 1}. {step}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
+      <section className="bg-cappuccino px-8 py-20 lg:px-16 lg:py-28">
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: '-80px' }}
+          transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+          className="mx-auto max-w-screen-xl"
+        >
+          <p className="mb-5 font-dm text-[11px] font-semibold uppercase tracking-ultra text-caramel">
+            Start exploring
+          </p>
+          <div className="grid gap-8 lg:grid-cols-[1fr_auto] lg:items-end">
+            <h2 className="max-w-[820px] font-playfair text-[clamp(50px,9vw,116px)] font-bold leading-[0.82] text-espresso">
+              Find something worth keeping.
+            </h2>
+            <Link
+              to="/collections"
+              className="inline-flex w-fit items-center justify-center gap-2 rounded-full bg-espresso px-9 py-4 font-dm text-[13px] font-semibold text-cream transition-all duration-300 hover:bg-mocha"
+            >
+              Shop all products <ArrowRight size={15} />
+            </Link>
+          </div>
+        </motion.div>
       </section>
     </main>
   )

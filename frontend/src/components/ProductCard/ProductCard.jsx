@@ -1,7 +1,7 @@
 import { memo, useState } from 'react'
 import PropTypes from 'prop-types'
 import { AnimatePresence, motion } from 'framer-motion'
-import { Heart } from 'lucide-react'
+import { Eye, Heart, ShoppingBag } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import useStore from '../../store/useStore'
 import SmartImage from '../UI/SmartImage'
@@ -19,6 +19,7 @@ function ProductCard({
 
   const isOnSale = product.originalPrice && product.originalPrice > product.price
   const isSoldOut = product.isSoldOut
+  const secondaryImage = product.images[1] ?? product.images[0]
 
   const sizeClasses = {
     sm: 'w-[175px]',
@@ -42,7 +43,7 @@ function ProductCard({
   return (
     <Link
       to={`/product/${product.id}`}
-      className={`group relative flex flex-col overflow-hidden rounded-[8px] border border-cappuccino/25 bg-cream-light transition-shadow duration-300 ease-smooth ${sizeClasses[size]} ${className}`}
+      className={`group relative flex flex-col overflow-hidden rounded-[8px] border border-cappuccino/25 bg-cream-light transition-[box-shadow,transform,border-color] duration-300 ease-smooth hover:-translate-y-1 hover:border-cappuccino/60 ${sizeClasses[size]} ${className}`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       style={{
@@ -57,9 +58,9 @@ function ProductCard({
         }`}
       >
         <motion.div
-          animate={{ scale: isHovered ? 1.05 : 1 }}
-          transition={{ duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
-          className="h-full w-full"
+          animate={{ scale: isHovered ? 1.045 : 1 }}
+          transition={{ duration: 0.65, ease: [0.25, 0.46, 0.45, 0.94] }}
+          className="relative h-full w-full"
         >
           <SmartImage
             src={product.images[0]}
@@ -72,6 +73,16 @@ function ProductCard({
             }}
             onLoad={() => setImgLoaded(true)}
           />
+          {secondaryImage !== product.images[0] ? (
+            <SmartImage
+              src={secondaryImage}
+              alt={`${product.brand} ${product.name} alternate view`}
+              className={`absolute inset-0 h-full w-full transition-opacity duration-500 ease-premium ${
+                isHovered ? 'opacity-100' : 'opacity-0'
+              }`}
+              imageClassName="object-cover object-center"
+            />
+          ) : null}
         </motion.div>
 
         {isOnSale && !isSoldOut ? (
@@ -112,21 +123,29 @@ function ProductCard({
 
         <AnimatePresence>
           {isHovered && (
-            <motion.button
-              onClick={handleAddToCart}
-              initial={{ y: '100%', opacity: 0, x: '-50%' }}
+            <motion.div
+              initial={{ y: 18, opacity: 0, x: '-50%' }}
               animate={{ y: 0, opacity: 1, x: '-50%' }}
-              exit={{ y: '100%', opacity: 0, x: '-50%' }}
+              exit={{ y: 18, opacity: 0, x: '-50%' }}
               transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-              className={`absolute bottom-3 left-1/2 z-10 whitespace-nowrap rounded-full px-6 py-2 font-dm text-[12px] font-medium tracking-wide transition-colors duration-250 ease-smooth ${
-                isSoldOut
-                  ? 'border border-caramel bg-cream/90 text-caramel'
-                  : 'bg-espresso text-cream hover:bg-mocha'
-              }`}
-              type="button"
+              className="absolute bottom-3 left-1/2 z-10 flex items-center gap-2"
             >
-              {isSoldOut ? 'Notify Me' : '+ Quick Add'}
-            </motion.button>
+              <button
+                onClick={handleAddToCart}
+                className={`inline-flex h-10 items-center gap-2 whitespace-nowrap rounded-full px-4 font-dm text-[12px] font-medium tracking-wide transition-colors duration-250 ease-smooth ${
+                  isSoldOut
+                    ? 'border border-caramel bg-cream/90 text-caramel'
+                    : 'bg-espresso text-cream hover:bg-mocha'
+                }`}
+                type="button"
+              >
+                <ShoppingBag size={14} strokeWidth={1.7} />
+                {isSoldOut ? 'Notify' : 'Add'}
+              </button>
+              <span className="flex h-10 w-10 items-center justify-center rounded-full border border-cream/50 bg-cream/85 text-espresso backdrop-blur-md transition-colors duration-250 ease-smooth group-hover:text-mocha">
+                <Eye size={15} strokeWidth={1.7} />
+              </span>
+            </motion.div>
           )}
         </AnimatePresence>
       </div>

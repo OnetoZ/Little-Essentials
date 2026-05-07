@@ -1,4 +1,6 @@
+import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
+import { ArrowUpRight } from 'lucide-react'
 import SectionHeader from '../UI/SectionHeader'
 import SmartImage from '../UI/SmartImage'
 
@@ -6,95 +8,131 @@ const JOURNAL_POSTS = [
   {
     id: 'j001',
     category: 'Lifestyle',
-    title: 'The Art of the Morning Routine: 7 Objects Worth Waking Up For',
+    title: 'The Morning Edit',
+    description: 'Seven objects that make the first hour feel composed.',
     readTime: '5 min read',
     image:
-      'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=900&q=85',
+      'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1000&q=86',
     href: '/journal/morning-routine',
   },
   {
     id: 'j002',
     category: 'Curation',
-    title: 'Why We Only Carry Brands That Could Disappear Without Notice',
+    title: 'What Makes a Product Worth Carrying?',
+    description: 'A closer look at the filters behind the Little Essentials edit.',
     readTime: '7 min read',
     image:
-      'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=900&q=85',
+      'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=900&q=86',
     href: '/journal/our-curation-process',
+  },
+  {
+    id: 'j003',
+    category: 'Gifting',
+    title: 'The Under Rs. 4,000 Gift List',
+    description: 'Useful, personal, and polished without feeling overdone.',
+    readTime: '4 min read',
+    image:
+      'https://images.unsplash.com/photo-1513201099705-a9746e1e201f?w=900&q=86',
+    href: '/journal/gift-list',
   },
 ]
 
 export default function JournalSection() {
+  const [lead, ...supporting] = JOURNAL_POSTS
+
   return (
     <section className="bg-cappuccino px-8 py-20 lg:px-16 lg:py-28">
       <div className="mx-auto max-w-screen-xl">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
+          viewport={{ once: true, margin: '-80px' }}
           transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
         >
-          <SectionHeader number="03" label="The Journal" />
+          <SectionHeader
+            number="06"
+            label="The Journal"
+            title="Editorial, not filler content."
+            description="Stories that help shoppers understand how to choose, gift, style, and live with the edit."
+            viewAllLink="/journal"
+          />
         </motion.div>
 
-        <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
-          {JOURNAL_POSTS.map((post, index) => (
-            <motion.a
-              key={post.id}
-              href={post.href}
-              initial={{ opacity: 0, y: 40 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{
-                delay: index * 0.12,
-                duration: 0.7,
-                ease: [0.16, 1, 0.3, 1],
-              }}
-              whileHover={{
-                y: -4,
-                boxShadow: '0 24px 64px rgba(59,42,34,0.22)',
-              }}
-              className="group relative block cursor-pointer overflow-hidden rounded-[8px]"
-              style={{ aspectRatio: '16/9' }}
+        <div className="grid gap-5 lg:grid-cols-[1.12fr_0.88fr]">
+          <motion.div
+            initial={{ opacity: 0, y: 34 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: '-80px' }}
+            transition={{ duration: 0.75, ease: [0.16, 1, 0.3, 1] }}
+          >
+            <Link
+              to={lead.href}
+              className="group relative block min-h-[560px] overflow-hidden rounded-[8px] bg-espresso"
             >
-              <div className="absolute inset-0 overflow-hidden">
-                <motion.div
-                  className="h-full w-full"
-                  whileHover={{ scale: 1.04 }}
-                  transition={{ duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
+              <SmartImage
+                src={lead.image}
+                alt={lead.title}
+                className="absolute inset-0 h-full w-full"
+                imageClassName="object-cover object-center transition-transform duration-800 ease-premium group-hover:scale-105"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-espresso via-espresso/40 to-transparent" />
+              <div className="absolute bottom-0 left-0 right-0 p-6 sm:p-8">
+                <p className="mb-4 font-dm text-[10px] font-medium uppercase tracking-ultra text-caramel">
+                  {lead.category} · {lead.readTime}
+                </p>
+                <h3 className="max-w-[520px] font-playfair text-[clamp(42px,7vw,76px)] font-black leading-[0.96] text-cream">
+                  {lead.title}
+                </h3>
+                <p className="mt-5 max-w-[380px] font-dm text-[15px] font-light leading-[1.7] text-cream/68">
+                  {lead.description}
+                </p>
+              </div>
+              <span className="absolute right-6 top-6 flex h-12 w-12 items-center justify-center rounded-full border border-cream/30 bg-cream/10 text-cream backdrop-blur-md">
+                <ArrowUpRight size={18} strokeWidth={1.7} />
+              </span>
+            </Link>
+          </motion.div>
+
+          <div className="grid gap-5">
+            {supporting.map((post, index) => (
+              <motion.div
+                key={post.id}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: '-70px' }}
+                transition={{
+                  delay: index * 0.1,
+                  duration: 0.7,
+                  ease: [0.16, 1, 0.3, 1],
+                }}
+              >
+                <Link
+                  to={post.href}
+                  className="group grid min-h-[268px] overflow-hidden rounded-[8px] bg-cream-light shadow-[0_14px_44px_rgba(59,42,34,0.08)] transition-transform duration-300 ease-premium hover:-translate-y-1 sm:grid-cols-[0.82fr_1fr]"
                 >
                   <SmartImage
                     src={post.image}
                     alt={post.title}
-                    className="h-full w-full"
+                    className="h-full min-h-[230px] w-full"
+                    imageClassName="object-cover object-center transition-transform duration-700 ease-premium group-hover:scale-105"
                   />
-                </motion.div>
-              </div>
-
-              <div
-                className="absolute inset-0"
-                style={{
-                  background:
-                    'linear-gradient(to top, rgba(59,42,34,0.85) 0%, rgba(59,42,34,0.3) 50%, transparent 100%)',
-                }}
-              />
-
-              <div className="absolute bottom-0 left-0 z-10 p-6">
-                <span className="mb-3 inline-block font-dm text-[10px] font-medium uppercase tracking-ultra text-caramel">
-                  {post.category}
-                </span>
-                <h3 className="mb-3 max-w-[360px] font-playfair text-[20px] font-bold leading-[1.3] text-cream">
-                  {post.title}
-                </h3>
-                <p className="font-dm text-[11px] text-cream/55">
-                  {post.readTime}
-                </p>
-              </div>
-
-              <div className="absolute bottom-5 right-5 z-10 flex h-9 w-9 items-center justify-center rounded-full border border-cream/30 transition-colors duration-250 ease-smooth group-hover:bg-cream/10">
-                <span className="text-sm text-cream">→</span>
-              </div>
-            </motion.a>
-          ))}
+                  <div className="flex flex-col justify-between p-6">
+                    <div>
+                      <p className="font-dm text-[10px] font-medium uppercase tracking-ultra text-caramel">
+                        {post.category} · {post.readTime}
+                      </p>
+                      <h3 className="mt-4 font-playfair text-[30px] font-bold leading-[1.02] text-espresso">
+                        {post.title}
+                      </h3>
+                    </div>
+                    <p className="mt-6 font-dm text-[14px] font-light leading-[1.65] text-mocha/70">
+                      {post.description}
+                    </p>
+                  </div>
+                </Link>
+              </motion.div>
+            ))}
+          </div>
         </div>
       </div>
     </section>
