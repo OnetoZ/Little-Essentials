@@ -64,8 +64,10 @@ export default function NewArrivals() {
       <div className="mx-auto max-w-screen-xl px-8 lg:px-16">
         <RevealOnScroll>
           <SectionHeader
-            number="01"
+            number="03"
             label="New Arrivals"
+            title="Fresh pieces, chosen with restraint."
+            description="A weekly edit of tactile objects, polished formulas, and thoughtful gifts that earn their place quickly."
             viewAllLink="/collections?filter=new"
           />
         </RevealOnScroll>
@@ -79,7 +81,7 @@ export default function NewArrivals() {
           onPointerMove={handlePointerMove}
           onPointerUp={handlePointerEnd}
           onPointerCancel={handlePointerEnd}
-          className="scrollbar-none flex cursor-grab touch-pan-x select-none gap-4 overflow-x-auto scroll-smooth px-8 pb-4 active:cursor-grabbing lg:gap-5 lg:px-16"
+          className="scrollbar-none flex cursor-grab touch-pan-x select-none gap-4 overflow-x-auto scroll-smooth px-8 pb-5 active:cursor-grabbing lg:gap-5 lg:px-16"
           style={{ scrollSnapType: 'x mandatory' }}
         >
           {products.map((product, index) => (
@@ -93,7 +95,9 @@ export default function NewArrivals() {
                 duration: 0.6,
                 ease: [0.16, 1, 0.3, 1],
               }}
-              className="w-[76vw] flex-shrink-0 sm:w-[260px] md:w-[280px] lg:w-[300px]"
+              className={`w-[76vw] flex-shrink-0 sm:w-[260px] md:w-[280px] lg:w-[300px] ${
+                index % 3 === 1 ? 'lg:pt-10' : ''
+              }`}
               style={{ scrollSnapAlign: 'start' }}
             >
               <ProductCard product={product} />

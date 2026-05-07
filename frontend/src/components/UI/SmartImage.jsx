@@ -28,7 +28,7 @@ export default function SmartImage({
   useEffect(() => {
     timeoutRef.current = window.setTimeout(() => {
       setStatus({ errored: true, loaded: true, src })
-    }, 8000)
+    }, 3500)
 
     return () => window.clearTimeout(timeoutRef.current)
   }, [src])
@@ -39,7 +39,13 @@ export default function SmartImage({
       style={aspectRatio ? { aspectRatio } : undefined}
     >
       {!loaded && !errored ? (
-        <div className="absolute inset-0 animate-shimmer bg-gradient-to-r from-cappuccino/30 via-cream to-cappuccino/30 bg-[length:400px_100%]" />
+        <div className="absolute inset-0 animate-shimmer bg-gradient-to-r from-cappuccino/35 via-cream-light to-cappuccino/35 bg-[length:400px_100%]">
+          <div className="absolute inset-x-0 bottom-0 p-4">
+            <span className="line-clamp-2 font-dm text-[10px] font-semibold uppercase tracking-ultra text-mocha/45">
+              {alt}
+            </span>
+          </div>
+        </div>
       ) : null}
       <img
         src={errored ? FALLBACK_SRC : src}

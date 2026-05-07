@@ -1,66 +1,102 @@
 import { motion } from 'framer-motion'
+import { ArrowRight } from 'lucide-react'
 import Button from '../UI/Button'
 import { products } from '../../data/mockProducts'
 import SmartImage from '../UI/SmartImage'
 
-const SPOTLIGHT_BG =
-  'https://images.unsplash.com/photo-1616401784845-180882ba9ba8?w=1600&q=85'
-
 export default function FeaturedSpotlight() {
   const product = products[0]
+  const companion = products[11]
 
   return (
-    <section className="relative h-[520px] overflow-hidden lg:h-[600px]">
-      <motion.div
-        initial={{ scale: 1.05 }}
-        whileInView={{ scale: 1 }}
-        viewport={{ once: true }}
-        transition={{ duration: 1.2, ease: [0.25, 0.46, 0.45, 0.94] }}
-        className="absolute inset-0"
-      >
-        <SmartImage
-          src={SPOTLIGHT_BG}
-          alt="Featured product"
-          className="h-full w-full"
-        />
-        <div
-          className="absolute inset-0"
-          style={{
-            background:
-              'linear-gradient(to right, rgba(59,42,34,0.88) 0%, rgba(59,42,34,0.64) 42%, rgba(59,42,34,0.18) 80%, transparent 100%)',
-          }}
-        />
-      </motion.div>
-
-      <div className="relative z-10 mx-auto flex h-full max-w-screen-xl items-center px-8 lg:px-16">
+    <section className="overflow-hidden bg-espresso px-8 py-20 lg:px-16 lg:py-28">
+      <div className="mx-auto grid max-w-screen-xl gap-10 lg:grid-cols-[0.8fr_1.2fr] lg:items-center">
         <motion.div
-          initial={{ opacity: 0, x: -40 }}
-          whileInView={{ opacity: 1, x: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-          className="max-w-md"
+          initial={{ opacity: 0, y: 26 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: '-80px' }}
+          transition={{ duration: 0.75, ease: [0.16, 1, 0.3, 1] }}
         >
-          <p className="mb-4 font-dm text-[11px] font-medium uppercase tracking-ultra text-caramel">
+          <p className="mb-5 font-dm text-[11px] font-medium uppercase tracking-ultra text-caramel">
             Featured This Week
           </p>
-          <h2 className="mb-4 font-playfair text-[clamp(32px,5vw,52px)] font-bold leading-[1.15] text-cream">
-            {product.name}
+          <h2 className="max-w-[520px] font-playfair text-[clamp(42px,7vw,90px)] font-black leading-[0.92] text-cream">
+            The polished daily ritual.
           </h2>
-          <p className="mb-6 font-dm text-[15px] font-light leading-[1.7] text-cream/70">
-            {product.description}
+          <p className="mt-7 max-w-[420px] font-dm text-[15px] font-light leading-[1.8] text-cream/66">
+            A compact pairing for hands, pulse points, and the bag you carry
+            every day. Quiet, useful, gift-ready.
           </p>
-          <div className="mb-8 flex items-center gap-4">
-            <span className="font-playfair text-[28px] font-bold text-cream">
-              ₹{product.price.toLocaleString('en-IN')}
-            </span>
-            <span className="font-dm text-[12px] text-caramel">
-              ★ {product.rating} ({product.reviewCount})
+
+          <div className="mt-9 flex flex-wrap items-center gap-4">
+            <Button variant="primary" to={`/product/${product.id}`} className="group">
+              Shop Featured
+              <ArrowRight
+                size={15}
+                className="transition-transform duration-250 group-hover:translate-x-1"
+              />
+            </Button>
+            <span className="font-dm text-[12px] uppercase tracking-wide-2 text-caramel">
+              From Rs. {product.price.toLocaleString('en-IN')}
             </span>
           </div>
-          <Button variant="primary" to={`/product/${product.id}`}>
-            Shop Now →
-          </Button>
         </motion.div>
+
+        <div className="grid gap-4 sm:grid-cols-[1fr_0.72fr] sm:items-end">
+          <motion.div
+            initial={{ opacity: 0, y: 34 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: '-80px' }}
+            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+            className="group overflow-hidden rounded-[8px] border border-cream/12 bg-mocha"
+          >
+            <SmartImage
+              src={product.images[0]}
+              alt={product.name}
+              className="aspect-[4/5] w-full"
+              imageClassName="object-cover object-center transition-transform duration-800 ease-premium group-hover:scale-105"
+            />
+            <div className="flex items-end justify-between gap-4 p-5">
+              <div>
+                <p className="font-dm text-[10px] uppercase tracking-ultra text-caramel">
+                  {product.brand}
+                </p>
+                <h3 className="mt-2 max-w-[280px] font-playfair text-[24px] font-bold leading-tight text-cream">
+                  {product.name}
+                </h3>
+              </div>
+              <p className="font-dm text-[13px] font-semibold text-cream">
+                Rs. {product.price.toLocaleString('en-IN')}
+              </p>
+            </div>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 34 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: '-80px' }}
+            transition={{ delay: 0.12, duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+            className="group overflow-hidden rounded-[8px] border border-cream/12 bg-mocha sm:translate-y-10"
+          >
+            <SmartImage
+              src={companion.images[0]}
+              alt={companion.name}
+              className="aspect-[4/5] w-full"
+              imageClassName="object-cover object-center transition-transform duration-800 ease-premium group-hover:scale-105"
+            />
+            <div className="p-5">
+              <p className="font-dm text-[10px] uppercase tracking-ultra text-caramel">
+                Pair it with
+              </p>
+              <h3 className="mt-2 font-playfair text-[22px] font-bold leading-tight text-cream">
+                {companion.name}
+              </h3>
+              <p className="mt-4 font-dm text-[13px] text-cream/60">
+                Rs. {companion.price.toLocaleString('en-IN')} · ★ {companion.rating}
+              </p>
+            </div>
+          </motion.div>
+        </div>
       </div>
     </section>
   )
