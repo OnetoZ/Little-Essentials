@@ -7,8 +7,6 @@ import { useShopifyProducts } from '../../hooks/useShopify'
 
 const CAMPAIGN_IMAGE =
   'https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?w=1500&q=90'
-const TEXTURE_IMAGE =
-  'https://images.unsplash.com/photo-1583847268964-b28dc8f51f92?w=1000&q=88'
 
 const STAGGER = {
   hidden: {},
@@ -185,19 +183,6 @@ export default function HeroSection() {
             ))}
           </motion.div>
 
-          <motion.div
-            animate={{ rotate: [0, 2, 0], y: [0, -12, 0] }}
-            transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
-            className="absolute right-[2%] top-[43%] hidden w-[170px] overflow-hidden rounded-[26px] border border-cream/70 shadow-[0_18px_54px_rgba(59,42,34,0.12)] lg:block xl:w-[190px]"
-          >
-            <SmartImage
-              src={TEXTURE_IMAGE}
-              alt="Little Essentials material texture"
-              className="aspect-[4/5] w-full"
-              imageClassName="object-cover object-center"
-              priority
-            />
-          </motion.div>
         </motion.div>
       </div>
     </section>

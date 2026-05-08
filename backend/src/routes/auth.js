@@ -172,29 +172,8 @@ router.get('/shopify/callback', async (req, res) => {
       shop: shop || SHOP_DOMAIN,
     })
 
-    // Show success page
-    res.send(`
-      <html>
-      <body style="font-family: 'Segoe UI', sans-serif; padding: 60px; text-align: center; background: #faf8f5; color: #3b2a22;">
-        <div style="max-width: 500px; margin: 0 auto; background: white; border-radius: 12px; padding: 40px; box-shadow: 0 4px 24px rgba(59,42,34,0.08);">
-          <h1 style="font-size: 48px; margin: 0;">✅</h1>
-          <h2 style="margin-top: 16px;">Shopify Connected!</h2>
-          <p style="color: #8b6f47; line-height: 1.6;">
-            Your Little Essentials backend is now connected to your Shopify store.
-          </p>
-          <div style="background: #f5f0e8; border-radius: 8px; padding: 16px; margin-top: 24px; text-align: left;">
-            <p style="margin: 4px 0; font-size: 14px;"><strong>Store:</strong> ${shop || SHOP_DOMAIN}</p>
-            <p style="margin: 4px 0; font-size: 14px;"><strong>Scopes:</strong> ${tokenData.scope}</p>
-          </div>
-          <p style="margin-top: 24px; font-size: 14px; color: #8b6f47;">
-            You can now close this window and use the API.<br/>
-            Test it: <a href="/api/health" style="color: #3b2a22;">/api/health</a> |
-            <a href="/api/products?first=2" style="color: #3b2a22;">/api/products</a>
-          </p>
-        </div>
-      </body>
-      </html>
-    `)
+    console.log('[Auth] Redirecting back to frontend...')
+    res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5173'}/login?status=success`)
   } catch (error) {
     console.error('[Auth] Callback error:', error)
     res.status(500).send(`
@@ -212,6 +191,348 @@ router.get('/shopify/callback', async (req, res) => {
 router.post('/logout', (_req, res) => {
   clearToken()
   res.json({ success: true, message: 'Token cleared. Visit /api/auth/shopify to re-authenticate.' })
+})
+
+// ─── CUSTOMER AUTH (Storefront API) ──────────────────────────────────
+
+/**
+ * POST /api/auth/customer/login
+ * Log in a customer using their Shopify email and password.
+ */
+router.post('/customer/login', async (req, res) => {
+  const { email, password } = req.body
+
+  if (!email || !password) {
+    return res.status(400).json({ success: false, error: 'Email and password are required' })
+  }
+
+  try {
+    const { storefrontFetch } = await import('../lib/shopifyStorefront.js')
+
+    const mutation = `
+      mutation customerAccessTokenCreate($input: CustomerAccessTokenCreateInput!) {
+        customerAccessTokenCreate(input: $input) {
+          customerAccessToken {
+            accessToken
+            expiresAt
+          }
+          customerUserErrors {
+            code
+            field
+            message
+          }
+        }
+      }
+    `
+
+    const data = await storefrontFetch(mutation, {
+      input: { email, password }
+    })
+
+    const { customerAccessToken, customerUserErrors } = data.customerAccessTokenCreate
+
+    if (customerUserErrors && customerUserErrors.length > 0) {
+      return res.status(401).json({
+        success: false,
+        error: customerUserErrors[0].message
+      })
+    }
+
+    // Now fetch the customer details using this token
+    const customerQuery = `
+      query getCustomer($customerAccessToken: String!) {
+        customer(customerAccessToken: $customerAccessToken) {
+          id
+          firstName
+          lastName
+          email
+          phone
+          defaultAddress {
+            address1
+            address2
+            city
+            province
+            zip
+            country
+          }
+        }
+      }
+    `
+
+    const customerData = await storefrontFetch(customerQuery, {
+      customerAccessToken: customerAccessToken.accessToken
+    })
+
+    res.json({
+      success: true,
+      token: customerAccessToken.accessToken,
+      expiresAt: customerAccessToken.expiresAt,
+      customer: customerData.customer
+    })
+  } catch (error) {
+    console.error('[Customer Auth] Login error:', error)
+    res.status(500).json({ success: false, error: error.message })
+  }
+})
+
+/**
+ * POST /api/auth/customer/register
+ * Create a new customer account in Shopify.
+ */
+router.post('/customer/register', async (req, res) => {
+  const { firstName, lastName, email, password } = req.body
+
+  if (!email || !password) {
+    return res.status(400).json({ success: false, error: 'Email and password are required' })
+  }
+
+  try {
+    const { storefrontFetch } = await import('../lib/shopifyStorefront.js')
+
+    const mutation = `
+      mutation customerCreate($input: CustomerCreateInput!) {
+        customerCreate(input: $input) {
+          customer {
+            id
+            email
+          }
+          customerUserErrors {
+            code
+            field
+            message
+          }
+        }
+      }
+    `
+
+    const data = await storefrontFetch(mutation, {
+      input: { firstName, lastName, email, password }
+    })
+
+    const { customer, customerUserErrors } = data.customerCreate
+
+    if (customerUserErrors && customerUserErrors.length > 0) {
+      return res.status(400).json({
+        success: false,
+        error: customerUserErrors[0].message
+      })
+    }
+
+    res.json({
+      success: true,
+      message: 'Account created successfully. Please log in.',
+      customer
+    })
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message })
+  }
+})
+
+/**
+ * POST /api/auth/customer/profile
+ * Fetch full customer profile including all addresses.
+ */
+router.post('/customer/profile', async (req, res) => {
+  const { accessToken } = req.body
+
+  if (!accessToken) {
+    return res.status(401).json({ success: false, error: 'Unauthorized' })
+  }
+
+  try {
+    const { storefrontFetch } = await import('../lib/shopifyStorefront.js')
+
+    const query = `
+      query getCustomer($customerAccessToken: String!) {
+        customer(customerAccessToken: $customerAccessToken) {
+          id
+          firstName
+          lastName
+          email
+          phone
+          addresses(first: 10) {
+            edges {
+              node {
+                id
+                address1
+                address2
+                city
+                province
+                zip
+                country
+                company
+              }
+            }
+          }
+          defaultAddress {
+            id
+            address1
+            address2
+            city
+            province
+            zip
+            country
+          }
+        }
+      }
+    `
+
+    const data = await storefrontFetch(query, { customerAccessToken: accessToken })
+
+    if (!data.customer) {
+      return res.status(401).json({ success: false, error: 'Invalid session' })
+    }
+
+    res.json({ success: true, customer: data.customer })
+  } catch (error) {
+    console.error('[Customer Auth] Profile fetch error:', error)
+    res.status(500).json({ success: false, error: error.message })
+  }
+})
+
+/**
+ * POST /api/auth/customer/address/create
+ * Add a new address to the customer's account.
+ */
+router.post('/customer/address/create', async (req, res) => {
+  const { accessToken, address } = req.body
+
+  if (!accessToken || !address) {
+    return res.status(400).json({ success: false, error: 'Token and address are required' })
+  }
+
+  try {
+    const { storefrontFetch } = await import('../lib/shopifyStorefront.js')
+
+    const mutation = `
+      mutation customerAddressCreate($customerAccessToken: String!, $address: MailingAddressInput!) {
+        customerAddressCreate(customerAccessToken: $customerAccessToken, address: $address) {
+          customerAddress { id }
+          customerUserErrors { message }
+        }
+      }
+    `
+
+    const data = await storefrontFetch(mutation, {
+      customerAccessToken: accessToken,
+      address
+    })
+
+    const result = data.customerAddressCreate
+    if (result.customerUserErrors?.length > 0) {
+      return res.status(400).json({ success: false, error: result.customerUserErrors[0].message })
+    }
+
+    res.json({ success: true, addressId: result.customerAddress.id })
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message })
+  }
+})
+
+/**
+ * POST /api/auth/customer/address/update
+ * Update an existing address.
+ */
+router.post('/customer/address/update', async (req, res) => {
+  const { accessToken, addressId, address } = req.body
+
+  try {
+    const { storefrontFetch } = await import('../lib/shopifyStorefront.js')
+
+    const mutation = `
+      mutation customerAddressUpdate($customerAccessToken: String!, $id: ID!, $address: MailingAddressInput!) {
+        customerAddressUpdate(customerAccessToken: $customerAccessToken, id: $id, address: $address) {
+          customerAddress { id }
+          customerUserErrors { message }
+        }
+      }
+    `
+
+    const data = await storefrontFetch(mutation, {
+      customerAccessToken: accessToken,
+      id: addressId,
+      address
+    })
+
+    const result = data.customerAddressUpdate
+    if (result.customerUserErrors?.length > 0) {
+      return res.status(400).json({ success: false, error: result.customerUserErrors[0].message })
+    }
+
+    res.json({ success: true })
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message })
+  }
+})
+
+/**
+ * POST /api/auth/customer/address/delete
+ * Delete a customer address.
+ */
+router.post('/customer/address/delete', async (req, res) => {
+  const { accessToken, addressId } = req.body
+
+  try {
+    const { storefrontFetch } = await import('../lib/shopifyStorefront.js')
+
+    const mutation = `
+      mutation customerAddressDelete($customerAccessToken: String!, $id: ID!) {
+        customerAddressDelete(customerAccessToken: $customerAccessToken, id: $id) {
+          deletedCustomerAddressId
+          customerUserErrors { message }
+        }
+      }
+    `
+
+    const data = await storefrontFetch(mutation, {
+      customerAccessToken: accessToken,
+      id: addressId
+    })
+
+    const result = data.customerAddressDelete
+    if (result.customerUserErrors?.length > 0) {
+      return res.status(400).json({ success: false, error: result.customerUserErrors[0].message })
+    }
+
+    res.json({ success: true })
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message })
+  }
+})
+
+/**
+ * POST /api/auth/customer/address/default
+ * Set a default address.
+ */
+router.post('/customer/address/default', async (req, res) => {
+  const { accessToken, addressId } = req.body
+
+  try {
+    const { storefrontFetch } = await import('../lib/shopifyStorefront.js')
+
+    const mutation = `
+      mutation customerDefaultAddressUpdate($customerAccessToken: String!, $addressId: ID!) {
+        customerDefaultAddressUpdate(customerAccessToken: $customerAccessToken, addressId: $addressId) {
+          customer { id }
+          customerUserErrors { message }
+        }
+      }
+    `
+
+    const data = await storefrontFetch(mutation, {
+      customerAccessToken: accessToken,
+      addressId
+    })
+
+    const result = data.customerDefaultAddressUpdate
+    if (result.customerUserErrors?.length > 0) {
+      return res.status(400).json({ success: false, error: result.customerUserErrors[0].message })
+    }
+
+    res.json({ success: true })
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message })
+  }
 })
 
 export default router

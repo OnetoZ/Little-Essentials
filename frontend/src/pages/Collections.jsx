@@ -66,7 +66,7 @@ export default function Collections() {
 
     setActiveCategory(nextCategory)
     setActiveFilter(nextFilter)
-    if (nextFilter === 'new') setSortBy('newest')
+    if (nextFilter === 'new' || nextCategory === 'New Arrivals') setSortBy('newest')
   }, [searchParams, categories])
 
   const handleCategoryChange = (category) => {
