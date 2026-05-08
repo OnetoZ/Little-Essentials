@@ -6,11 +6,10 @@ import FloatInput from '../components/UI/FloatInput'
 import SmartImage from '../components/UI/SmartImage'
 import SEO from '../components/SEO/SEO'
 import { sanitizeText } from '../utils/sanitize'
-import { products } from '../data/mockProducts'
+import { useShopifyProducts } from '../hooks/useShopify'
 
 const HERO_IMAGE =
   'https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?w=1300&q=90'
-const PRODUCT_STRIP = [products[0], products[4], products[11]]
 
 function GoogleIcon() {
   return (
@@ -32,6 +31,11 @@ function AppleIcon() {
 }
 
 export default function Login() {
+  const { products } = useShopifyProducts({ first: 12 })
+  const PRODUCT_STRIP = products.length >= 3
+    ? [products[0], products[Math.floor(products.length / 2)], products[products.length - 1]]
+    : products.slice(0, 3)
+
   const [tab, setTab] = useState('login')
   const [form, setForm] = useState({ name: '', email: '', password: '' })
   const setField = (key) => (event) =>

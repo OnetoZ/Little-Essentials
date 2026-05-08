@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { ArrowUpRight } from 'lucide-react'
 import SmartImage from '../UI/SmartImage'
-import { categories, products } from '../../data/mockProducts'
+import { useShopifyCollections, useShopifyProducts } from '../../hooks/useShopify'
 
 const COPY = {
   Skincare: 'Rituals that make care feel precise.',
@@ -12,18 +12,23 @@ const COPY = {
   Accessories: 'Small forms, sharper details.',
 }
 
-const COLLECTIONS = categories.slice(1).map((category) => {
-  const items = products.filter((product) => product.category === category)
-
-  return {
-    category,
-    count: items.length,
-    products: items.length ? items : products.slice(0, 2),
-    text: COPY[category] ?? 'A considered edit.',
-  }
-})
-
 export default function CuratedCollections() {
+  const { categories } = useShopifyCollections()
+  const { products } = useShopifyProducts({ first: 24 })
+
+  const COLLECTIONS = categories.slice(1).map((category) => {
+    const items = products.filter(
+      (p) => p.category.toLowerCase() === category.toLowerCase(),
+    )
+
+    return {
+      category,
+      count: items.length,
+      products: items.length ? items : products.slice(0, 2),
+      text: COPY[category] ?? 'A considered edit.',
+    }
+  }).filter((c) => c.products.length > 0)
+
   return (
     <section className="overflow-hidden bg-espresso px-8 py-20 lg:px-16 lg:py-28">
       <div className="mx-auto max-w-screen-xl">

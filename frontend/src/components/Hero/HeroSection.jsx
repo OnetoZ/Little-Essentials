@@ -3,13 +3,12 @@ import { motion, useScroll, useTransform } from 'framer-motion'
 import { ArrowRight, Sparkles, Star } from 'lucide-react'
 import Button from '../UI/Button'
 import SmartImage from '../UI/SmartImage'
-import { products } from '../../data/mockProducts'
+import { useShopifyProducts } from '../../hooks/useShopify'
 
 const CAMPAIGN_IMAGE =
   'https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?w=1500&q=90'
 const TEXTURE_IMAGE =
   'https://images.unsplash.com/photo-1583847268964-b28dc8f51f92?w=1000&q=88'
-const HERO_PRODUCTS = [products[0], products[4], products[8]]
 
 const STAGGER = {
   hidden: {},
@@ -27,6 +26,10 @@ const FADE = {
 
 export default function HeroSection() {
   const sectionRef = useRef(null)
+  const { products } = useShopifyProducts({ first: 12, sortKey: 'BEST_SELLING' })
+  const HERO_PRODUCTS = products.length >= 3
+    ? [products[0], products[Math.floor(products.length / 2)], products[products.length - 1]]
+    : products.slice(0, 3)
   const { scrollYProgress } = useScroll({
     target: sectionRef,
     offset: ['start start', 'end start'],

@@ -1,12 +1,15 @@
 import { motion } from 'framer-motion'
 import { ArrowRight } from 'lucide-react'
 import Button from '../UI/Button'
-import { products } from '../../data/mockProducts'
+import { useShopifyProducts } from '../../hooks/useShopify'
 import SmartImage from '../UI/SmartImage'
 
 export default function FeaturedSpotlight() {
+  const { products } = useShopifyProducts({ first: 12, sortKey: 'BEST_SELLING' })
   const product = products[0]
-  const companion = products[11]
+  const companion = products[products.length > 1 ? products.length - 1 : 0]
+
+  if (!product) return null
 
   return (
     <section className="overflow-hidden bg-espresso px-8 py-20 lg:px-16 lg:py-28">

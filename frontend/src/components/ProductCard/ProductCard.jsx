@@ -15,6 +15,9 @@ function ProductCard({
   const [isHovered, setIsHovered] = useState(false)
   const [imgLoaded, setImgLoaded] = useState(false)
   const { addToCart, toggleWishlist, wishlist } = useStore()
+  
+  if (!product) return null
+
   const isWished = wishlist.includes(product.id)
 
   const isOnSale = product.originalPrice && product.originalPrice > product.price
