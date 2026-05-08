@@ -1,21 +1,23 @@
 import { useEffect, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
-import { Heart, Menu, Search, ShoppingBag, User, X } from 'lucide-react'
+import { Heart, MapPin, Menu, Search, ShoppingBag, Sparkles, User, X } from 'lucide-react'
 import CartDrawer from '../Cart/CartDrawer'
 import useStore from '../../store/useStore'
 import { useShopifyCollections } from '../../hooks/useShopify'
+import { useShopifyAuth } from '../../hooks/useShopifyAuth'
 
 const NAV_LINKS = [
   { label: 'Home', path: '/' },
   { label: 'Collections', path: '/collections', preview: true },
-  { label: 'New Arrivals', path: '/collections?filter=new' },
+  { label: 'New Arrivals', path: '/collections?category=New Arrivals' },
   { label: 'About', path: '/about' },
-  { label: 'Journal', path: '/journal' },
 ]
 
 export default function Navbar() {
+  const { isAuthenticated, logout } = useShopifyAuth()
   const [previewOpen, setPreviewOpen] = useState(false)
+  const [profileOpen, setProfileOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const location = useLocation()
   const { categories } = useShopifyCollections()
@@ -201,13 +203,85 @@ export default function Navbar() {
             </AnimatePresence>
           </button>
 
-          <Link
-            to="/login"
-            className={`flex h-9 w-9 items-center justify-center rounded-full ${iconColor} transition-all duration-300 ease-premium hover:scale-105 hover:bg-cappuccino/22`}
-            aria-label="Login"
-          >
-            <User size={20} strokeWidth={1.5} />
-          </Link>
+          {isAuthenticated ? (
+            <div className="relative">
+              <button
+                onClick={() => setProfileOpen(!profileOpen)}
+                className={`flex h-9 w-9 items-center justify-center rounded-full ${iconColor} transition-all duration-300 ease-premium hover:scale-105 hover:bg-cappuccino/22 ${profileOpen ? 'bg-cappuccino/22' : ''}`}
+                aria-label="Account menu"
+                type="button"
+              >
+                <User size={20} strokeWidth={1.5} />
+              </button>
+
+              <AnimatePresence>
+                {profileOpen && (
+                  <>
+                    <div
+                      className="fixed inset-0 z-40"
+                      onClick={() => setProfileOpen(false)}
+                    />
+                    <motion.div
+                      initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: 8, scale: 0.95 }}
+                      transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+                      className="absolute right-0 top-12 z-50 w-[280px] origin-top-right rounded-[24px] border border-cappuccino/45 bg-cream-light/96 p-2 shadow-[0_24px_70px_rgba(59,42,34,0.16)] backdrop-blur-xl"
+                    >
+                      <div className="p-4 pb-3 border-b border-cappuccino/20">
+                        <p className="font-dm text-[10px] font-bold uppercase tracking-ultra text-caramel mb-1">Signed in as</p>
+                        <p className="font-playfair text-[16px] font-bold text-espresso truncate">
+                          {useShopifyAuth().user?.firstName} {useShopifyAuth().user?.lastName}
+                        </p>
+                        <p className="font-dm text-[11px] text-mocha truncate opacity-60">
+                          {useShopifyAuth().user?.email}
+                        </p>
+                      </div>
+
+                      <div className="py-2">
+                        {[
+                          { label: 'Dashboard', path: '/login', icon: Sparkles },
+                          { label: 'My Orders', path: '/login', icon: ShoppingBag },
+                          { label: 'Wishlist', path: '/login', icon: Heart },
+                        ].map((item) => (
+                          <Link
+                            key={item.label}
+                            to={item.path}
+                            onClick={() => setProfileOpen(false)}
+                            className="flex items-center gap-3 rounded-xl px-4 py-3 font-dm text-[13px] font-semibold text-mocha transition-all hover:bg-cappuccino/15 hover:text-espresso"
+                          >
+                            <User size={16} strokeWidth={1.8} />
+                            {item.label}
+                          </Link>
+                        ))}
+                      </div>
+
+                      <div className="pt-2 mt-1 border-t border-cappuccino/20">
+                        <button
+                          onClick={() => {
+                            logout()
+                            setProfileOpen(false)
+                          }}
+                          className="flex w-full items-center gap-3 rounded-xl px-4 py-3 font-dm text-[13px] font-bold text-red-500 transition-all hover:bg-red-50"
+                        >
+                          <X size={16} strokeWidth={2} />
+                          Sign Out
+                        </button>
+                      </div>
+                    </motion.div>
+                  </>
+                )}
+              </AnimatePresence>
+            </div>
+          ) : (
+            <Link
+              to="/login"
+              className={`flex h-9 w-9 items-center justify-center rounded-full ${iconColor} transition-all duration-300 ease-premium hover:scale-105 hover:bg-cappuccino/22`}
+              aria-label="Login"
+            >
+              <User size={20} strokeWidth={1.5} />
+            </Link>
+          )}
         </div>
 
         <div className="flex w-full items-center justify-between lg:hidden">

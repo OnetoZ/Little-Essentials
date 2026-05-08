@@ -44,7 +44,6 @@ const SHOP_LINKS = [
   { label: 'Best Sellers', path: '/collections?filter=bestsellers' },
   { label: 'Gift Cards', path: '/gift-cards' },
   { label: 'Sale', path: '/collections?filter=sale' },
-  { label: 'Lookbook', path: '/journal' },
 ]
 
 const CARE_LINKS = [

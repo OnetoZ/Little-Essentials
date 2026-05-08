@@ -106,7 +106,7 @@ export function normalizeProduct(shopifyProduct) {
   const isNew =
     tagList.includes('new') ||
     (createdAt &&
-      Date.now() - new Date(createdAt).getTime() < 30 * 24 * 60 * 60 * 1000)
+      Date.now() - new Date(createdAt).getTime() < 7 * 24 * 60 * 60 * 1000)
 
   // ── Rating / reviews from metafields ──
   let rating = 4.5

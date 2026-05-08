@@ -14,7 +14,6 @@ const ProductDetail = lazy(() => import('./pages/ProductDetail'))
 const Cart = lazy(() => import('./pages/Cart'))
 const Checkout = lazy(() => import('./pages/Checkout'))
 const InfoPage = lazy(() => import('./pages/InfoPage'))
-const Journal = lazy(() => import('./pages/Journal'))
 const OrderTracking = lazy(() => import('./pages/OrderTracking'))
 const Login = lazy(() => import('./pages/Login'))
 const NotFound = lazy(() => import('./pages/NotFound'))
@@ -54,8 +53,6 @@ function AppRoutes() {
               <Route path="/product/:id" element={<ProductDetail />} />
               <Route path="/cart" element={<Cart />} />
               <Route path="/checkout" element={<Checkout />} />
-              <Route path="/journal" element={<Journal />} />
-              <Route path="/journal/:slug" element={<Journal />} />
               <Route path="/contact" element={<InfoPage />} />
               <Route path="/faqs" element={<InfoPage />} />
               <Route path="/shipping" element={<InfoPage />} />

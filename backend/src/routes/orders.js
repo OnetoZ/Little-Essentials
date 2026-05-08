@@ -175,4 +175,47 @@ router.get('/:id', async (req, res) => {
   }
 })
 
+// ─── GET /api/orders/customer/:email ───────────────────────────────
+// Fetch order history for a specific customer email
+router.get('/customer/:email', async (req, res) => {
+  try {
+    const { email } = req.params
+
+    const data = await adminFetch(
+      `query OrdersByCustomer($query: String!) {
+        orders(first: 20, query: $query) {
+          edges {
+            node {
+              id
+              name
+              createdAt
+              displayFulfillmentStatus
+              displayFinancialStatus
+              totalPriceSet {
+                shopMoney { amount currencyCode }
+              }
+              lineItems(first: 5) {
+                edges {
+                  node {
+                    title
+                    quantity
+                    image { url }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }`,
+      { query: `email:${email}` },
+    )
+
+    const orders = data.orders?.edges?.map(edge => edge.node) || []
+    res.json({ success: true, orders })
+  } catch (error) {
+    console.error('[GET /api/orders/customer/:email]', error.message)
+    res.status(500).json({ success: false, error: error.message })
+  }
+})
+
 export default router
