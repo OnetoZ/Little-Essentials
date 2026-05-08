@@ -2,7 +2,6 @@ import { lazy, Suspense } from 'react'
 import { BrowserRouter, Route, Routes, useLocation } from 'react-router-dom'
 import Footer from './components/Footer/Footer'
 import Navbar from './components/Navbar/Navbar'
-import CustomCursor from './components/UI/CustomCursor'
 import PageTransition from './components/UI/PageTransition'
 import RouteWipe from './components/UI/RouteWipe'
 import ScrollProgressBar from './components/UI/ScrollProgressBar'
@@ -36,7 +35,6 @@ function AppRoutes() {
   return (
     <>
       <ScrollProgressBar />
-      <CustomCursor />
       <ToastContainer />
       <RouteWipe />
       <a

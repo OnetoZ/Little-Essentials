@@ -6,7 +6,7 @@ import ProductGrid from '../components/ProductCard/ProductGrid'
 import SEO from '../components/SEO/SEO'
 import RevealOnScroll from '../components/UI/RevealOnScroll'
 import SmartImage from '../components/UI/SmartImage'
-import { categories, getByCategory, products } from '../data/mockProducts'
+import { useShopifyProducts, useShopifyCollections } from '../hooks/useShopify'
 
 const SORT_OPTIONS = [
   { label: 'Featured', value: 'featured' },
@@ -16,10 +16,22 @@ const SORT_OPTIONS = [
   { label: 'Best Rated', value: 'rating' },
 ]
 
+// Map frontend sort values to Shopify sort keys
+const SORT_MAP = {
+  featured: { sortKey: 'BEST_SELLING', reverse: false },
+  'price-asc': { sortKey: 'PRICE', reverse: false },
+  'price-desc': { sortKey: 'PRICE', reverse: true },
+  newest: { sortKey: 'CREATED_AT', reverse: true },
+  rating: { sortKey: 'BEST_SELLING', reverse: false },
+}
+
 export default function Collections() {
   const [searchParams] = useSearchParams()
   const requestedCategory = searchParams.get('category')
   const requestedFilter = searchParams.get('filter')
+
+  const { categories } = useShopifyCollections()
+
   const initialCategory = categories.includes(requestedCategory)
     ? requestedCategory
     : 'All'
@@ -32,41 +44,19 @@ export default function Collections() {
     requestedFilter === 'new' ? 'newest' : 'featured',
   )
   const [gridCols, setGridCols] = useState(3)
-  const [filtered, setFiltered] = useState(products)
-  const [loading, setLoading] = useState(false)
-  const heroProducts = [products[0], products[4], products[11]]
 
-  useEffect(() => {
-    const timeout = setTimeout(() => {
-      let result = getByCategory(activeCategory)
+  const sortConfig = SORT_MAP[sortBy] || SORT_MAP.featured
 
-      if (activeFilter === 'new') {
-        result = result.filter((product) => product.isNew)
-      }
+  const { products, loading, hasNextPage, loadMore } = useShopifyProducts({
+    first: 24,
+    sortKey: sortConfig.sortKey,
+    reverse: sortConfig.reverse,
+    category: activeCategory,
+    filter: activeFilter,
+  })
 
-      switch (sortBy) {
-        case 'price-asc':
-          result = [...result].sort((a, b) => a.price - b.price)
-          break
-        case 'price-desc':
-          result = [...result].sort((a, b) => b.price - a.price)
-          break
-        case 'newest':
-          result = [...result].sort((a, b) => Number(b.isNew) - Number(a.isNew))
-          break
-        case 'rating':
-          result = [...result].sort((a, b) => b.rating - a.rating)
-          break
-        default:
-          break
-      }
-
-      setFiltered(result)
-      setLoading(false)
-    }, 350)
-
-    return () => clearTimeout(timeout)
-  }, [activeCategory, activeFilter, sortBy])
+  // Pick 3 hero products from the loaded results
+  const heroProducts = products.slice(0, 3)
 
   useEffect(() => {
     const category = searchParams.get('category')
@@ -74,28 +64,19 @@ export default function Collections() {
     const nextCategory = categories.includes(category) ? category : 'All'
     const nextFilter = filter === 'new' ? 'new' : ''
 
-    const timeout = setTimeout(() => {
-      setLoading(true)
-      setActiveCategory(nextCategory)
-      setActiveFilter(nextFilter)
-      if (nextFilter === 'new') setSortBy('newest')
-    }, 0)
-
-    return () => clearTimeout(timeout)
-  }, [searchParams])
+    setActiveCategory(nextCategory)
+    setActiveFilter(nextFilter)
+    if (nextFilter === 'new') setSortBy('newest')
+  }, [searchParams, categories])
 
   const handleCategoryChange = (category) => {
     if (category === activeCategory) return
-
-    setLoading(true)
     setActiveCategory(category)
     setActiveFilter('')
   }
 
   const handleSortChange = (value) => {
     if (value === sortBy) return
-
-    setLoading(true)
     setSortBy(value)
   }
 
@@ -287,7 +268,7 @@ export default function Collections() {
                 {activeFilter === 'new' ? 'New arrivals' : activeCategory}
               </p>
               <h2 className="mt-3 font-playfair text-[clamp(38px,5vw,68px)] font-bold leading-none text-espresso">
-                {filtered.length} visible pieces.
+                {products.length} visible pieces.
               </h2>
             </div>
             <p className="max-w-[360px] font-dm text-[14px] font-light leading-[1.7] text-mocha/70">
@@ -306,7 +287,7 @@ export default function Collections() {
             transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
           >
             <ProductGrid
-              products={filtered}
+              products={products}
               loading={loading}
               editorial={gridCols === 3}
               columns={gridCols}
@@ -315,26 +296,21 @@ export default function Collections() {
           </motion.div>
         </AnimatePresence>
 
-        {filtered.length > 0 ? (
+        {products.length > 0 ? (
           <RevealOnScroll>
             <div className="mt-16 flex flex-col items-center gap-4">
-              <div className="h-1 w-full max-w-xs overflow-hidden rounded-full bg-cappuccino/30">
-                <div
-                  className="h-full rounded-full bg-caramel transition-all duration-500"
-                  style={{
-                    width: `${Math.min((filtered.length / products.length) * 100, 100)}%`,
-                  }}
-                />
-              </div>
               <p className="font-dm text-[12px] text-caramel">
-                Showing {filtered.length} of {products.length} products
+                Showing {products.length} products
               </p>
-              <button
-                className="rounded-[3px] border border-cappuccino px-8 py-3 font-dm text-[13px] font-medium text-mocha transition-all duration-250 ease-smooth hover:border-caramel hover:bg-espresso-4"
-                type="button"
-              >
-                Load More
-              </button>
+              {hasNextPage ? (
+                <button
+                  onClick={loadMore}
+                  className="rounded-[3px] border border-cappuccino px-8 py-3 font-dm text-[13px] font-medium text-mocha transition-all duration-250 ease-smooth hover:border-caramel hover:bg-espresso-4"
+                  type="button"
+                >
+                  Load More
+                </button>
+              ) : null}
             </div>
           </RevealOnScroll>
         ) : null}

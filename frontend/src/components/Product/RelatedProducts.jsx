@@ -2,9 +2,11 @@ import PropTypes from 'prop-types'
 import { motion } from 'framer-motion'
 import ProductCard from '../ProductCard/ProductCard'
 import RevealOnScroll from '../UI/RevealOnScroll'
-import { products } from '../../data/mockProducts'
+import { useShopifyProducts } from '../../hooks/useShopify'
 
 export default function RelatedProducts({ product }) {
+  const { products } = useShopifyProducts({ first: 24 })
+
   const categoryMatches = products.filter(
     (item) => item.category === product.category && item.id !== product.id,
   )

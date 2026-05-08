@@ -1,24 +1,61 @@
-import { Navigate, useParams } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { Link, useParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { ShoppingBag } from 'lucide-react'
 import ProductGallery from '../components/Product/ProductGallery'
 import ProductInfo from '../components/Product/ProductInfo'
 import RelatedProducts from '../components/Product/RelatedProducts'
 import SEO from '../components/SEO/SEO'
-import { getProductById } from '../data/mockProducts'
 import useStore from '../store/useStore'
+import { useShopifyProduct } from '../hooks/useShopify'
 
 export default function ProductDetail() {
-  const { id } = useParams()
-  const product = getProductById(id)
+  const { id: handle } = useParams()
+  const { product, loading, error } = useShopifyProduct(handle)
+  const [selectedVariant, setSelectedVariant] = useState(null)
   const { addToCart, openCart } = useStore()
 
-  if (!product) return <Navigate to="/collections" replace />
+  useEffect(() => {
+    window.scrollTo(0, 0)
+    if (product?.variantNodes?.length > 0) {
+      setSelectedVariant(product.variantNodes[0])
+    }
+  }, [product])
+
+  if (loading) {
+    return (
+      <div className="flex min-h-[60vh] items-center justify-center bg-cream">
+        <motion.div
+          animate={{ rotate: 360 }}
+          transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+          className="h-8 w-8 border-2 border-mocha border-t-transparent rounded-full"
+        />
+      </div>
+    )
+  }
+
+  if (error || !product) {
+    return (
+      <div className="flex min-h-[60vh] flex-col items-center justify-center bg-cream px-8 text-center">
+        <h2 className="font-playfair text-3xl font-bold text-espresso">Product not found</h2>
+        <p className="mt-4 font-dm text-mocha">The piece you're looking for might have been moved or is no longer available.</p>
+        <Link to="/collections" className="mt-8 border-b border-caramel pb-1 font-dm text-sm font-semibold text-espresso">
+          Back to Collections
+        </Link>
+      </div>
+    )
+  }
 
   const handleMobileAdd = () => {
-    if (product.isSoldOut) return
+    if (product.isSoldOut || !selectedVariant) return
 
-    addToCart({ ...product, qty: 1 })
+    addToCart({
+      ...product,
+      id: selectedVariant.id,
+      price: selectedVariant.price,
+      image: selectedVariant.image || product.images[0],
+      qty: 1
+    })
     openCart()
   }
 
@@ -27,7 +64,7 @@ export default function ProductDetail() {
       <SEO
         title={product.name}
         description={`${product.description} Shop ${product.name} by ${product.brand} at Little Essentials. Free delivery over Rs.999.`}
-        canonical={`https://www.littleessentials.in/product/${product.id}`}
+        canonical={`https://www.littleessentials.in/product/${product.handle}`}
         image={product.images?.[0]}
         type="product"
         product={product}
@@ -62,15 +99,10 @@ export default function ProductDetail() {
         </div>
         <button
           onClick={handleMobileAdd}
-          className={`flex h-11 flex-shrink-0 items-center gap-2 rounded-[4px] px-6 font-dm text-[13px] font-medium transition-colors duration-250 ease-smooth ${
-            product.isSoldOut
-              ? 'bg-cappuccino text-espresso/50'
-              : 'bg-mocha text-cream hover:bg-espresso'
-          }`}
           disabled={product.isSoldOut}
-          type="button"
+          className="flex h-12 flex-shrink-0 items-center gap-2 rounded-full bg-espresso px-6 font-dm text-[12px] font-bold uppercase tracking-wide text-cream transition-colors duration-250 hover:bg-mocha disabled:cursor-not-allowed disabled:bg-cappuccino/60"
         >
-          <ShoppingBag size={15} />
+          <ShoppingBag size={14} />
           {product.isSoldOut ? 'Sold Out' : 'Add to Bag'}
         </button>
       </motion.div>

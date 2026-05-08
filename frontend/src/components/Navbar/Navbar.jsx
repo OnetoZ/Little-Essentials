@@ -4,7 +4,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { Heart, Menu, Search, ShoppingBag, User, X } from 'lucide-react'
 import CartDrawer from '../Cart/CartDrawer'
 import useStore from '../../store/useStore'
-import { categories } from '../../data/mockProducts'
+import { useShopifyCollections } from '../../hooks/useShopify'
 
 const NAV_LINKS = [
   { label: 'Home', path: '/' },
@@ -18,6 +18,7 @@ export default function Navbar() {
   const [previewOpen, setPreviewOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const location = useLocation()
+  const { categories } = useShopifyCollections()
 
   const {
     closeMobileMenu,

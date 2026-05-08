@@ -1,10 +1,33 @@
 import { motion } from 'framer-motion'
 import ProductCard from '../ProductCard/ProductCard'
+import ProductCardSkeleton from '../ProductCard/ProductCardSkeleton'
 import SectionHeader from '../UI/SectionHeader'
-import { products } from '../../data/mockProducts'
+import { useShopifyProducts } from '../../hooks/useShopify'
 
 export default function AvailableNow() {
-  const featured = products.slice(2, 6)
+  const { products, loading } = useShopifyProducts({ first: 6, sortKey: 'BEST_SELLING' })
+  const featured = products.slice(0, 4)
+
+  const renderCard = (index, featuredCard = false, className = '') => {
+    if (loading) {
+      return (
+        <div className={className}>
+          <ProductCardSkeleton />
+        </div>
+      )
+    }
+    
+    const product = featured[index]
+    if (!product) return null
+
+    return (
+      <ProductCard
+        product={product}
+        className={className}
+        featured={featuredCard}
+      />
+    )
+  }
 
   return (
     <section className="bg-cream px-8 py-20 lg:px-16 lg:py-28">
@@ -32,11 +55,7 @@ export default function AvailableNow() {
             transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
             className="lg:row-span-2"
           >
-            <ProductCard
-              product={featured[0]}
-              className="lg:h-full"
-              featured
-            />
+            {renderCard(0, true, 'lg:h-full')}
           </motion.div>
 
           <motion.div
@@ -49,7 +68,7 @@ export default function AvailableNow() {
               ease: [0.16, 1, 0.3, 1],
             }}
           >
-            <ProductCard product={featured[1]} />
+            {renderCard(1)}
           </motion.div>
 
           <motion.div
@@ -62,7 +81,7 @@ export default function AvailableNow() {
               ease: [0.16, 1, 0.3, 1],
             }}
           >
-            <ProductCard product={featured[2]} />
+            {renderCard(2)}
           </motion.div>
 
           <motion.div
@@ -76,11 +95,7 @@ export default function AvailableNow() {
             }}
             className="sm:col-span-2 lg:col-span-1 lg:row-span-2"
           >
-            <ProductCard
-              product={featured[3]}
-              className="lg:h-full"
-              featured
-            />
+            {renderCard(3, true, 'lg:h-full')}
           </motion.div>
         </div>
       </div>
