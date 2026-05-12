@@ -1,5 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { apiGet } from '../lib/api'
+import { storefrontFetch, isStorefrontConfigured } from '../lib/shopifyClient'
+import { normalizeProduct, normalizeProductEdges, normalizeCollection } from '../lib/shopifyAdapter'
+import {
+  ALL_PRODUCTS_QUERY,
+  SEARCH_PRODUCTS_QUERY,
+  PRODUCT_BY_HANDLE_QUERY,
+  ALL_COLLECTIONS_QUERY,
+  COLLECTION_BY_HANDLE_QUERY,
+} from '../lib/shopifyQueries'
 import {
   products as mockProducts,
   categories as mockCategories,
@@ -9,18 +17,11 @@ import {
   getFeatured as getMockFeatured,
 } from '../data/mockProducts'
 
-/**
- * Check whether the backend URL is configured.
- * If not, hooks transparently fall back to mock data.
- */
-const isBackendConfigured = () =>
-  Boolean(import.meta.env.VITE_BACKEND_URL)
-
 // ─── useShopifyProducts ──────────────────────────────────────────────
 
 /**
- * Fetch products from the backend. Falls back to mock data when the
- * backend is not configured or unreachable.
+ * Fetch products directly from the Shopify Storefront API.
+ * Falls back to mock data when the Storefront API is not configured.
  *
  * @param {Object} options
  * @param {number}  options.first     Number of products per page (default 24)
@@ -51,7 +52,7 @@ export function useShopifyProducts({
     setError(null)
 
     try {
-      if (!isBackendConfigured()) {
+      if (!isStorefrontConfigured()) {
         // ── Fallback to mock data ──
         let result =
           category && category !== 'All'
@@ -106,21 +107,48 @@ export function useShopifyProducts({
         return
       }
 
-      // ── Fetch from backend API ──
-      const data = await apiGet('/api/products', {
-        first,
-        sortKey,
-        reverse,
-        category: category !== 'All' ? category : undefined,
-        filter: filter || undefined,
-        search: search || undefined,
-      })
+      // ── Fetch directly from Shopify Storefront API ──
+      let data
+      let edges
+      let pageInfo
+
+      if (search) {
+        data = await storefrontFetch(SEARCH_PRODUCTS_QUERY, {
+          query: search,
+          first,
+        })
+        edges = data.search.edges
+        pageInfo = { hasNextPage: false, endCursor: null }
+      } else {
+        data = await storefrontFetch(ALL_PRODUCTS_QUERY, {
+          first,
+          after: null,
+          sortKey,
+          reverse,
+        })
+        edges = data.products.edges
+        pageInfo = data.products.pageInfo
+      }
 
       if (id !== abortRef.current) return
 
-      setProducts(data.products || [])
-      setHasNextPage(data.pageInfo?.hasNextPage ?? false)
-      setEndCursor(data.pageInfo?.endCursor ?? null)
+      let normalized = normalizeProductEdges(edges)
+
+      // Client-side category filter
+      if (category && category !== 'All') {
+        normalized = normalized.filter(
+          (p) => p.category.toLowerCase() === category.toLowerCase(),
+        )
+      }
+
+      // "new" filter
+      if (filter === 'new') {
+        normalized = normalized.filter((p) => p.isNew)
+      }
+
+      setProducts(normalized)
+      setHasNextPage(pageInfo?.hasNextPage ?? false)
+      setEndCursor(pageInfo?.endCursor ?? null)
     } catch (err) {
       if (id === abortRef.current) {
         console.error('[useShopifyProducts]', err)
@@ -141,20 +169,21 @@ export function useShopifyProducts({
 
   // Load more (pagination)
   const loadMore = useCallback(async () => {
-    if (!hasNextPage || !endCursor || !isBackendConfigured()) return
+    if (!hasNextPage || !endCursor || !isStorefrontConfigured()) return
 
     setLoading(true)
     try {
-      const data = await apiGet('/api/products', {
+      const data = await storefrontFetch(ALL_PRODUCTS_QUERY, {
         first,
         after: endCursor,
         sortKey,
         reverse,
       })
 
-      setProducts((prev) => [...prev, ...(data.products || [])])
-      setHasNextPage(data.pageInfo?.hasNextPage ?? false)
-      setEndCursor(data.pageInfo?.endCursor ?? null)
+      const newProducts = normalizeProductEdges(data.products.edges)
+      setProducts((prev) => [...prev, ...newProducts])
+      setHasNextPage(data.products.pageInfo?.hasNextPage ?? false)
+      setEndCursor(data.products.pageInfo?.endCursor ?? null)
     } catch (err) {
       console.error('[useShopifyProducts:loadMore]', err)
       setError(err.message)
@@ -184,15 +213,17 @@ export function useShopifyProduct(handleOrId) {
       setError(null)
 
       try {
-        if (!isBackendConfigured()) {
+        if (!isStorefrontConfigured()) {
           const mock = getMockProductById(handleOrId)
           if (!cancelled) setProduct(mock ?? null)
           return
         }
 
-        const data = await apiGet(`/api/products/${handleOrId}`)
+        const data = await storefrontFetch(PRODUCT_BY_HANDLE_QUERY, {
+          handle: handleOrId,
+        })
         if (!cancelled) {
-          setProduct(data.product ?? null)
+          setProduct(normalizeProduct(data.productByHandle) ?? null)
         }
       } catch (err) {
         if (!cancelled) {
@@ -224,8 +255,8 @@ export function useShopifyProduct(handleOrId) {
 // ─── useShopifyCollections ───────────────────────────────────────────
 
 /**
- * Fetch all collections from the backend.
- * Falls back to mock categories if backend is not configured.
+ * Fetch all collections directly from Shopify Storefront API.
+ * Falls back to mock categories if not configured.
  */
 export function useShopifyCollections() {
   const [collections, setCollections] = useState([])
@@ -239,16 +270,25 @@ export function useShopifyCollections() {
       setLoading(true)
 
       try {
-        if (!isBackendConfigured()) {
+        if (!isStorefrontConfigured()) {
           setCategories(mockCategories)
           setCollections([])
           return
         }
 
-        const data = await apiGet('/api/collections')
+        const data = await storefrontFetch(ALL_COLLECTIONS_QUERY, { first: 20 })
+
         if (!cancelled) {
-          setCollections(data.collections || [])
-          setCategories(data.categories || mockCategories)
+          const raw = data.collections.edges.map((e) => ({
+            ...e.node,
+            productsCount: { count: 0 },
+          }))
+          const normalized = raw
+            .map((c) => normalizeCollection(c))
+            .filter(Boolean)
+
+          setCollections(normalized)
+          setCategories(['All', ...normalized.map((c) => c.title)])
         }
       } catch (err) {
         if (!cancelled) {
@@ -269,10 +309,68 @@ export function useShopifyCollections() {
   return { collections, categories, loading }
 }
 
+// ─── useShopifyCollection ────────────────────────────────────────────
+
+/**
+ * Fetch a single collection and its products by handle.
+ */
+export function useShopifyCollection(handle, { first = 24, sortKey = 'MANUAL', reverse = false } = {}) {
+  const [collection, setCollection] = useState(null)
+  const [products, setProducts] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+  const [pageInfo, setPageInfo] = useState({ hasNextPage: false, endCursor: null })
+
+  useEffect(() => {
+    let cancelled = false
+
+    async function load() {
+      if (!handle) return
+      setLoading(true)
+      setError(null)
+
+      try {
+        if (!isStorefrontConfigured()) {
+          if (!cancelled) setLoading(false)
+          return
+        }
+
+        const data = await storefrontFetch(COLLECTION_BY_HANDLE_QUERY, {
+          handle,
+          first,
+          after: null,
+          sortKey,
+          reverse,
+        })
+
+        if (!cancelled && data.collection) {
+          setCollection(normalizeCollection(data.collection))
+          setProducts(normalizeProductEdges(data.collection.products?.edges || []))
+          setPageInfo(data.collection.products?.pageInfo || { hasNextPage: false, endCursor: null })
+        }
+      } catch (err) {
+        if (!cancelled) {
+          console.error('[useShopifyCollection]', err)
+          setError(err.message)
+        }
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
+    }
+
+    load()
+    return () => {
+      cancelled = true
+    }
+  }, [handle, first, sortKey, reverse])
+
+  return { collection, products, loading, error, pageInfo }
+}
+
 // ─── useShopifySearch ────────────────────────────────────────────────
 
 /**
- * Search products via the backend.
+ * Search products via the Storefront API.
  */
 export function useShopifySearch(query, first = 12) {
   const [results, setResults] = useState([])
@@ -290,7 +388,7 @@ export function useShopifySearch(query, first = 12) {
       setLoading(true)
 
       try {
-        if (!isBackendConfigured()) {
+        if (!isStorefrontConfigured()) {
           const lower = query.toLowerCase()
           const filtered = mockProducts.filter(
             (p) =>
@@ -302,9 +400,12 @@ export function useShopifySearch(query, first = 12) {
           return
         }
 
-        const data = await apiGet('/api/products', { search: query, first })
+        const data = await storefrontFetch(SEARCH_PRODUCTS_QUERY, {
+          query,
+          first,
+        })
         if (!cancelled) {
-          setResults(data.products || [])
+          setResults(normalizeProductEdges(data.search.edges))
         }
       } catch (err) {
         if (!cancelled) console.error('[useShopifySearch]', err)

@@ -584,17 +584,6 @@ export default function Login() {
                     transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
                     className="rounded-[26px] border border-cappuccino/55 bg-cream/88 p-4 shadow-[0_22px_80px_rgba(59,42,34,0.10)] backdrop-blur-xl sm:p-5"
                   >
-                    <div className="mb-3 grid gap-3">
-                      <button
-                        onClick={() => window.location.href = `${import.meta.env.VITE_BACKEND_URL || 'http://localhost:4000'}/api/auth/shopify`}
-                        className="flex h-11 items-center justify-center gap-3 rounded-full border border-cappuccino bg-cream-light font-dm text-[12px] font-semibold text-espresso transition-colors duration-250 hover:border-caramel"
-                        type="button"
-                      >
-                        <img src="https://cdn.shopify.com/assets/images/logos/shopify-bag.png" alt="" className="h-5 w-5 object-contain" />
-                        Sign in with Shopify
-                      </button>
-                    </div>
-
                     <form onSubmit={handleSubmit}>
                       <div className="mb-3 space-y-2.5">
                         {tab === 'register' ? (

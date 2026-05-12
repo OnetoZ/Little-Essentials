@@ -1,26 +1,26 @@
 /**
  * Shopify Storefront API Client
  *
- * Uses the public Storefront API token for read-only operations
- * (products, collections, search). This works immediately without
- * OAuth — just needs the SHOPIFY_STOREFRONT_TOKEN in .env.
+ * Talks directly to the Shopify Storefront API from the browser.
+ * The Storefront Access Token is a PUBLIC token — it is safe to
+ * expose in frontend code (Shopify designed it for this purpose).
  *
- * For write operations (orders, checkout), use shopifyAdmin.js instead.
+ * This replaces the old backend proxy entirely. No server needed.
  */
 
-const SHOPIFY_DOMAIN = process.env.SHOPIFY_STORE_DOMAIN
-const STOREFRONT_TOKEN = process.env.SHOPIFY_STOREFRONT_TOKEN
-const API_VERSION = '2024-10'
+const SHOPIFY_DOMAIN = import.meta.env.VITE_SHOPIFY_STORE_DOMAIN
+const STOREFRONT_TOKEN = import.meta.env.VITE_SHOPIFY_STOREFRONT_TOKEN
+const API_VERSION = import.meta.env.VITE_SHOPIFY_API_VERSION || '2024-10'
 
 const STOREFRONT_URL = `https://${SHOPIFY_DOMAIN}/api/${API_VERSION}/graphql.json`
 
 /**
- * Execute a GraphQL query against the Shopify Storefront API.
+ * Execute a GraphQL query/mutation against the Shopify Storefront API.
  */
 export async function storefrontFetch(query, variables = {}) {
   if (!SHOPIFY_DOMAIN || !STOREFRONT_TOKEN) {
     throw new Error(
-      'Missing SHOPIFY_STORE_DOMAIN or SHOPIFY_STOREFRONT_TOKEN in .env',
+      'Missing VITE_SHOPIFY_STORE_DOMAIN or VITE_SHOPIFY_STOREFRONT_TOKEN in .env',
     )
   }
 
