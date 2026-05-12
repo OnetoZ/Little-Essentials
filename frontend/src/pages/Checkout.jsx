@@ -294,13 +294,13 @@ function InformationStep({ form, setForm, onNext, isAuthenticated }) {
       {!isAuthenticated && (
         <>
           <div className="space-y-3">
-            <SocialButton
-              variant="light"
-              onClick={() => window.location.href = `${import.meta.env.VITE_BACKEND_URL || 'http://localhost:4000'}/api/auth/shopify`}
+            <Link
+              to="/login"
+              className="flex h-12 w-full items-center justify-center gap-3 rounded-[8px] border border-cappuccino bg-cream-light font-dm text-[13px] font-medium text-espresso transition-all duration-250 ease-smooth hover:border-caramel hover:bg-cream"
             >
               <img src="https://cdn.shopify.com/assets/images/logos/shopify-bag.png" alt="" className="h-5 w-5 object-contain" />
-              Continue with Shopify
-            </SocialButton>
+              Sign in to your account
+            </Link>
           </div>
         </>
       )}

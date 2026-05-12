@@ -1,16 +1,27 @@
 import { useCallback, useState, useEffect } from 'react'
-import { apiPost } from '../lib/api'
-import useStore from '../store/useStore'
+import { storefrontFetch, isStorefrontConfigured } from '../lib/shopifyClient'
+import {
+  CUSTOMER_LOGIN_MUTATION,
+  CUSTOMER_REGISTER_MUTATION,
+  CUSTOMER_QUERY,
+  CUSTOMER_PROFILE_QUERY,
+  CUSTOMER_ADDRESS_CREATE_MUTATION,
+  CUSTOMER_ADDRESS_UPDATE_MUTATION,
+  CUSTOMER_ADDRESS_DELETE_MUTATION,
+  CUSTOMER_DEFAULT_ADDRESS_UPDATE_MUTATION,
+  CUSTOMER_ORDERS_QUERY,
+} from '../lib/shopifyQueries'
 
 /**
  * Hook for Shopify Customer Authentication.
- * Manages login, registration, and user session.
+ * Manages login, registration, and user session — all via the
+ * Shopify Storefront API directly. No backend needed.
  */
 export function useShopifyAuth() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   
-  // Get user state from global store if available, or local storage
+  // Get user state from local storage
   const [user, setUser] = useState(() => {
     const saved = localStorage.getItem('le_customer')
     return saved ? JSON.parse(saved) : null
@@ -20,12 +31,30 @@ export function useShopifyAuth() {
     setLoading(true)
     setError(null)
     try {
-      const data = await apiPost('/api/auth/customer/login', { email, password })
-      
+      if (!isStorefrontConfigured()) {
+        throw new Error('Shopify Storefront API is not configured. Set VITE_SHOPIFY_STORE_DOMAIN and VITE_SHOPIFY_STOREFRONT_TOKEN.')
+      }
+
+      // Create customer access token
+      const tokenData = await storefrontFetch(CUSTOMER_LOGIN_MUTATION, {
+        input: { email, password }
+      })
+
+      const { customerAccessToken, customerUserErrors } = tokenData.customerAccessTokenCreate
+
+      if (customerUserErrors && customerUserErrors.length > 0) {
+        throw new Error(customerUserErrors[0].message)
+      }
+
+      // Fetch customer details using the token
+      const customerData = await storefrontFetch(CUSTOMER_QUERY, {
+        customerAccessToken: customerAccessToken.accessToken
+      })
+
       const session = {
-        token: data.token,
-        customer: data.customer,
-        expiresAt: data.expiresAt
+        token: customerAccessToken.accessToken,
+        customer: customerData.customer,
+        expiresAt: customerAccessToken.expiresAt
       }
       
       localStorage.setItem('le_customer', JSON.stringify(session))
@@ -43,13 +72,21 @@ export function useShopifyAuth() {
     setLoading(true)
     setError(null)
     try {
-      const data = await apiPost('/api/auth/customer/register', { 
-        firstName, 
-        lastName, 
-        email, 
-        password 
+      if (!isStorefrontConfigured()) {
+        throw new Error('Shopify Storefront API is not configured.')
+      }
+
+      const data = await storefrontFetch(CUSTOMER_REGISTER_MUTATION, {
+        input: { firstName, lastName, email, password }
       })
-      return data
+
+      const { customer, customerUserErrors } = data.customerCreate
+
+      if (customerUserErrors && customerUserErrors.length > 0) {
+        throw new Error(customerUserErrors[0].message)
+      }
+
+      return { success: true, message: 'Account created successfully. Please log in.', customer }
     } catch (err) {
       setError(err.message)
       throw err
@@ -64,11 +101,41 @@ export function useShopifyAuth() {
   }, [])
 
   const fetchOrders = useCallback(async () => {
-    if (!user?.customer?.email) return []
+    if (!user?.token || !isStorefrontConfigured()) return []
     try {
-      const { apiGet } = await import('../lib/api')
-      const data = await apiGet(`/api/orders/customer/${user.customer.email}`)
-      return data.orders || []
+      const data = await storefrontFetch(CUSTOMER_ORDERS_QUERY, {
+        customerAccessToken: user.token,
+        first: 20,
+      })
+
+      // Normalize orders from Storefront API format
+      const orders = data.customer?.orders?.edges?.map(edge => {
+        const o = edge.node
+        return {
+          id: o.id,
+          name: o.name || `#${o.orderNumber}`,
+          createdAt: o.processedAt,
+          displayFulfillmentStatus: o.fulfillmentStatus,
+          displayFinancialStatus: o.financialStatus,
+          totalPriceSet: {
+            shopMoney: {
+              amount: o.totalPriceV2?.amount,
+              currencyCode: o.totalPriceV2?.currencyCode,
+            }
+          },
+          lineItems: {
+            edges: o.lineItems?.edges?.map(le => ({
+              node: {
+                title: le.node.title,
+                quantity: le.node.quantity,
+                image: le.node.variant?.image || null,
+              }
+            })) || []
+          }
+        }
+      }) || []
+
+      return orders
     } catch (err) {
       console.error('Error fetching orders:', err)
       return []
@@ -76,16 +143,18 @@ export function useShopifyAuth() {
   }, [user])
 
   const fetchProfile = useCallback(async () => {
-    if (!user?.token) return null
+    if (!user?.token || !isStorefrontConfigured()) return null
     try {
-      const data = await apiPost('/api/auth/customer/profile', { accessToken: user.token })
-      if (data.success) {
-        const updatedSession = { ...user, customer: data.customer }
-        localStorage.setItem('le_customer', JSON.stringify(updatedSession))
-        setUser(updatedSession)
-        return data.customer
-      }
-      return null
+      const data = await storefrontFetch(CUSTOMER_PROFILE_QUERY, {
+        customerAccessToken: user.token
+      })
+
+      if (!data.customer) return null
+
+      const updatedSession = { ...user, customer: data.customer }
+      localStorage.setItem('le_customer', JSON.stringify(updatedSession))
+      setUser(updatedSession)
+      return data.customer
     } catch (err) {
       console.error('Error fetching profile:', err)
       return null
@@ -93,31 +162,60 @@ export function useShopifyAuth() {
   }, [user])
 
   const addAddress = useCallback(async (address) => {
-    if (!user?.token) return
-    const data = await apiPost('/api/auth/customer/address/create', { accessToken: user.token, address })
-    if (data.success) await fetchProfile()
-    return data
+    if (!user?.token || !isStorefrontConfigured()) return
+    const data = await storefrontFetch(CUSTOMER_ADDRESS_CREATE_MUTATION, {
+      customerAccessToken: user.token,
+      address
+    })
+    const result = data.customerAddressCreate
+    if (result.customerUserErrors?.length > 0) {
+      throw new Error(result.customerUserErrors[0].message)
+    }
+    await fetchProfile()
+    return { success: true, addressId: result.customerAddress.id }
   }, [user, fetchProfile])
 
   const updateAddress = useCallback(async (addressId, address) => {
-    if (!user?.token) return
-    const data = await apiPost('/api/auth/customer/address/update', { accessToken: user.token, addressId, address })
-    if (data.success) await fetchProfile()
-    return data
+    if (!user?.token || !isStorefrontConfigured()) return
+    const data = await storefrontFetch(CUSTOMER_ADDRESS_UPDATE_MUTATION, {
+      customerAccessToken: user.token,
+      id: addressId,
+      address
+    })
+    const result = data.customerAddressUpdate
+    if (result.customerUserErrors?.length > 0) {
+      throw new Error(result.customerUserErrors[0].message)
+    }
+    await fetchProfile()
+    return { success: true }
   }, [user, fetchProfile])
 
   const deleteAddress = useCallback(async (addressId) => {
-    if (!user?.token) return
-    const data = await apiPost('/api/auth/customer/address/delete', { accessToken: user.token, addressId })
-    if (data.success) await fetchProfile()
-    return data
+    if (!user?.token || !isStorefrontConfigured()) return
+    const data = await storefrontFetch(CUSTOMER_ADDRESS_DELETE_MUTATION, {
+      customerAccessToken: user.token,
+      id: addressId
+    })
+    const result = data.customerAddressDelete
+    if (result.customerUserErrors?.length > 0) {
+      throw new Error(result.customerUserErrors[0].message)
+    }
+    await fetchProfile()
+    return { success: true }
   }, [user, fetchProfile])
 
   const setDefaultAddress = useCallback(async (addressId) => {
-    if (!user?.token) return
-    const data = await apiPost('/api/auth/customer/address/default', { accessToken: user.token, addressId })
-    if (data.success) await fetchProfile()
-    return data
+    if (!user?.token || !isStorefrontConfigured()) return
+    const data = await storefrontFetch(CUSTOMER_DEFAULT_ADDRESS_UPDATE_MUTATION, {
+      customerAccessToken: user.token,
+      addressId
+    })
+    const result = data.customerDefaultAddressUpdate
+    if (result.customerUserErrors?.length > 0) {
+      throw new Error(result.customerUserErrors[0].message)
+    }
+    await fetchProfile()
+    return { success: true }
   }, [user, fetchProfile])
 
   const isAuthenticated = Boolean(user?.token)

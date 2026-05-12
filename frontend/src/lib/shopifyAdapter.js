@@ -1,11 +1,10 @@
 /**
  * Shopify → Little Essentials Data Adapter
  *
- * Maps Shopify Admin API product/collection data into the shape
+ * Maps Shopify Storefront API product/collection data into the shape
  * that the frontend components (ProductCard, ProductGrid, etc.) expect.
  *
- * All Shopify-specific data transformation happens here on the server.
- * The frontend receives clean, ready-to-use objects.
+ * Ported from backend/src/lib/shopifyAdapter.js — now runs in the browser.
  */
 
 /**
@@ -51,7 +50,7 @@ export function normalizeProduct(shopifyProduct) {
   } = shopifyProduct
 
   // ── Price ──
-  // Admin API returns price fields slightly differently depending on query
+  // Storefront API uses priceRange, Admin API uses priceRangeV2
   const priceRange = shopifyProduct.priceRangeV2 || shopifyProduct.priceRange
   const compareAtPriceRange = shopifyProduct.compareAtPriceRange
 
