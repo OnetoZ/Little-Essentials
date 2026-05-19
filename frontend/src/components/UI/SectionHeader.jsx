@@ -19,17 +19,6 @@ export default function SectionHeader({
           : 'items-end justify-between'
       }`}
     >
-      <span
-        className={`pointer-events-none absolute top-1/2 -translate-y-1/2 select-none font-playfair font-black leading-none ${
-          centered ? 'left-1/2 -translate-x-1/2' : '-left-2'
-        }`}
-        style={{
-          fontSize: 'clamp(80px,12vw,120px)',
-          color: 'rgba(59,42,34,0.06)',
-        }}
-      >
-        {number}
-      </span>
 
       <div className="relative z-10 max-w-[620px]">
         <p className="mb-3 font-dm text-[11px] font-medium uppercase tracking-ultra text-caramel">

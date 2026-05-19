@@ -85,7 +85,7 @@ export default function About() {
             </h1>
             <p className="mt-8 max-w-[540px] font-dm text-[17px] font-light leading-[1.85] text-mocha/78">
               Little Essentials is built for people who want fewer choices, made
-              better. We collect premium skincare, home, fragrance, stationery,
+              better. We collect premium home, fragrance, stationery,
               and accessories into a calm, useful, highly edited shop.
             </p>
             <div className="mt-9 flex flex-col gap-3 sm:flex-row">

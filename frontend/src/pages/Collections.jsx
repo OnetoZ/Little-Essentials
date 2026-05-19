@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { ArrowUpRight, Grid2X2, Grid3X3, SlidersHorizontal, Star } from 'lucide-react'
+import { ArrowUpRight, Grid2X2, Grid3X3, LayoutGrid, SlidersHorizontal, Star } from 'lucide-react'
 import { Link, useSearchParams } from 'react-router-dom'
 import ProductGrid from '../components/ProductCard/ProductGrid'
 import SEO from '../components/SEO/SEO'
@@ -30,7 +30,7 @@ export default function Collections() {
   const requestedCategory = searchParams.get('category')
   const requestedFilter = searchParams.get('filter')
 
-  const { categories } = useShopifyCollections()
+  const { categories, collections } = useShopifyCollections()
 
   const initialCategory = categories.includes(requestedCategory)
     ? requestedCategory
@@ -43,15 +43,19 @@ export default function Collections() {
   const [sortBy, setSortBy] = useState(
     requestedFilter === 'new' ? 'newest' : 'featured',
   )
-  const [gridCols, setGridCols] = useState(3)
+  const [gridCols, setGridCols] = useState(4)
 
   const sortConfig = SORT_MAP[sortBy] || SORT_MAP.featured
+
+  const activeCollection = collections.find((c) => c.title === activeCategory)
+  const collectionHandle = activeCollection ? activeCollection.handle : ''
 
   const { products, loading, hasNextPage, loadMore } = useShopifyProducts({
     first: 24,
     sortKey: sortConfig.sortKey,
     reverse: sortConfig.reverse,
     category: activeCategory,
+    collectionHandle,
     filter: activeFilter,
   })
 
@@ -84,9 +88,9 @@ export default function Collections() {
     <main className="min-h-screen overflow-x-hidden bg-cream">
       <SEO
         title="Shop All Collections"
-        description="Browse the complete Little Essentials collection of premium lifestyle products. Skincare, home, fragrance, stationery, and accessories - all curated by hand."
+        description="Browse the complete Little Essentials collection of premium lifestyle products. Home, fragrance, stationery, and accessories - all curated by hand."
         canonical="https://www.littleessentials.in/collections"
-        keywords="premium products india, shop skincare india, luxury candles india, premium stationery, little essentials collections"
+        keywords="premium products india, luxury candles india, premium stationery, little essentials collections"
       />
       <section className="relative overflow-hidden bg-cream px-8 pb-16 pt-32 lg:px-16 lg:pb-20 lg:pt-36">
         <div
@@ -114,7 +118,7 @@ export default function Collections() {
               Products with a point of view.
             </h1>
             <p className="mt-7 max-w-[500px] font-dm text-[16px] font-light leading-[1.8] text-mocha/78">
-              No center-stage clutter. Browse skincare, home, fragrance,
+              No center-stage clutter. Browse home, fragrance,
               stationery, and accessories in a product-first layout built for
               fast discovery.
             </p>
@@ -231,6 +235,18 @@ export default function Collections() {
             </select>
 
             <div className="hidden items-center overflow-hidden rounded-[8px] border border-cappuccino/60 lg:flex">
+              <button
+                onClick={() => setGridCols(4)}
+                className={`p-2 transition-colors duration-250 ease-smooth ${
+                  gridCols === 4
+                    ? 'bg-espresso text-cream'
+                    : 'text-caramel hover:text-espresso'
+                }`}
+                aria-label="Use compact grid"
+                type="button"
+              >
+                <LayoutGrid size={15} />
+              </button>
               <button
                 onClick={() => setGridCols(3)}
                 className={`p-2 transition-colors duration-250 ease-smooth ${

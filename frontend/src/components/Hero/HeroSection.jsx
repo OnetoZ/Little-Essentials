@@ -51,7 +51,7 @@ export default function HeroSection() {
             key={index}
             className="pr-12 font-playfair text-[clamp(80px,14vw,190px)] font-bold leading-none text-espresso"
           >
-            CURATED DAILY
+            LITTLE ESSENTIALS
           </span>
         ))}
       </motion.div>
@@ -84,7 +84,7 @@ export default function HeroSection() {
             variants={FADE}
             className="mt-6 max-w-[500px] font-dm text-[16px] font-light leading-[1.75] text-mocha/78"
           >
-            Premium skincare, home, fragrance, and desk objects arranged with
+            Premium, home, fragrance, and desk objects arranged with
             the calm of a gallery and the speed of a modern shop.
           </motion.p>
 

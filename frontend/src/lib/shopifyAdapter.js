@@ -169,6 +169,9 @@ export function normalizeCollection(shopifyCollection) {
     title: shopifyCollection.title,
     description: shopifyCollection.description || '',
     image: shopifyCollection.image?.url || null,
-    productCount: shopifyCollection.productsCount?.count ?? 0,
+    productCount: shopifyCollection.productsCount?.count ?? (shopifyCollection.products?.edges?.length ?? 0),
+    products: shopifyCollection.products?.edges
+      ? normalizeProductEdges(shopifyCollection.products.edges)
+      : [],
   }
 }

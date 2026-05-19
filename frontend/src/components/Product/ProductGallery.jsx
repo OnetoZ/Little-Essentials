@@ -42,7 +42,7 @@ export default function ProductGallery({ images = [], productName = '' }) {
   }
 
   return (
-    <div className="w-full flex-shrink-0 lg:w-[55%]">
+    <div className="w-full flex-shrink-0 lg:w-[45%]">
       <div
         ref={imgRef}
         className="relative w-full cursor-crosshair overflow-hidden rounded-[8px] bg-cream"

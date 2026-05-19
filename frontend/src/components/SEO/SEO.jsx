@@ -9,9 +9,9 @@ const DEFAULT_IMG = `${SITE_URL}/og-default.svg`
 const DEFAULTS = {
   title: 'Little Essentials - Premium Curated Lifestyle Store',
   description:
-    'Shop premium curated products - skincare, home, fragrance, stationery and accessories. Handpicked with intention. Free delivery over Rs.999.',
+    'Shop premium curated products - home, fragrance, stationery and accessories. Handpicked with intention. Free delivery over Rs.999.',
   keywords:
-    'premium lifestyle store, curated products india, luxury skincare india, premium home decor, little essentials, aesop india, paddywax india, premium stationery',
+    'premium lifestyle store, curated products india, premium home decor, little essentials, aesop india, paddywax india, premium stationery',
   canonical: SITE_URL,
   image: DEFAULT_IMG,
   type: 'website',

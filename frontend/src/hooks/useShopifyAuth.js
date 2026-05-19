@@ -10,6 +10,7 @@ import {
   CUSTOMER_ADDRESS_DELETE_MUTATION,
   CUSTOMER_DEFAULT_ADDRESS_UPDATE_MUTATION,
   CUSTOMER_ORDERS_QUERY,
+  CUSTOMER_RECOVER_MUTATION,
 } from '../lib/shopifyQueries'
 
 /**
@@ -43,7 +44,11 @@ export function useShopifyAuth() {
       const { customerAccessToken, customerUserErrors } = tokenData.customerAccessTokenCreate
 
       if (customerUserErrors && customerUserErrors.length > 0) {
-        throw new Error(customerUserErrors[0].message)
+        let errorMessage = customerUserErrors[0].message;
+        if (errorMessage === 'Unidentified customer') {
+          errorMessage = 'Invalid email or password. If you are a new user, please create an account first.';
+        }
+        throw new Error(errorMessage);
       }
 
       // Fetch customer details using the token
@@ -100,6 +105,30 @@ export function useShopifyAuth() {
     setUser(null)
   }, [])
 
+  const recoverPassword = useCallback(async (email) => {
+    setLoading(true)
+    setError(null)
+    try {
+      if (!isStorefrontConfigured()) {
+        throw new Error('Shopify Storefront API is not configured.')
+      }
+
+      const data = await storefrontFetch(CUSTOMER_RECOVER_MUTATION, { email })
+      const result = data.customerRecover
+
+      if (result.customerUserErrors && result.customerUserErrors.length > 0) {
+        throw new Error(result.customerUserErrors[0].message)
+      }
+
+      return { success: true, message: 'Password recovery email sent.' }
+    } catch (err) {
+      setError(err.message)
+      throw err
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
   const fetchOrders = useCallback(async () => {
     if (!user?.token || !isStorefrontConfigured()) return []
     try {
@@ -151,9 +180,11 @@ export function useShopifyAuth() {
 
       if (!data.customer) return null
 
-      const updatedSession = { ...user, customer: data.customer }
-      localStorage.setItem('le_customer', JSON.stringify(updatedSession))
-      setUser(updatedSession)
+      if (JSON.stringify(user?.customer) !== JSON.stringify(data.customer)) {
+        const updatedSession = { ...user, customer: data.customer }
+        localStorage.setItem('le_customer', JSON.stringify(updatedSession))
+        setUser(updatedSession)
+      }
       return data.customer
     } catch (err) {
       console.error('Error fetching profile:', err)
@@ -229,6 +260,7 @@ export function useShopifyAuth() {
     login,
     register,
     logout,
+    recoverPassword,
     fetchOrders,
     fetchProfile,
     addAddress,

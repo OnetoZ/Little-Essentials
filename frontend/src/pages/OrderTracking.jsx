@@ -15,12 +15,12 @@ const MOCK_ORDER = {
   id: 'LE-2025-08847',
   status: 'in_transit',
   product: {
-    id: 'p001',
-    name: 'Resurrection Aromatique Hand Balm',
-    brand: 'AESOP',
-    price: 2400,
+    id: 'p002',
+    name: 'Cypress & Fir Ceramic Candle',
+    brand: 'PADDYWAX',
+    price: 1800,
     image:
-      'https://images.unsplash.com/photo-1571781926291-c477ebfd024b?w=400&q=85',
+      'https://images.unsplash.com/photo-1602928298849-325cec8771cc?w=800&q=85',
   },
   estimatedDelivery: 'Thursday, 15 May 2025',
   placedOn: 'Tuesday, 13 May 2025',
@@ -89,10 +89,10 @@ export default function OrderTracking() {
       ...MOCK_ORDER.product,
       images: [MOCK_ORDER.product.image],
       qty: 1,
-      category: 'Skincare',
+      category: 'Home',
       isNew: false,
       isSoldOut: false,
-      rating: 4.8,
+      rating: 4.9,
     })
     openCart()
   }

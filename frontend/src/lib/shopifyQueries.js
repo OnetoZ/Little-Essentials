@@ -92,6 +92,11 @@ export const ALL_COLLECTIONS_QUERY = `
           title
           description
           image { url altText width height }
+          products(first: 3) {
+            edges {
+              node { ${SF_PRODUCT_FIELDS} }
+            }
+          }
         }
       }
     }
@@ -125,6 +130,18 @@ export const CUSTOMER_LOGIN_MUTATION = `
         accessToken
         expiresAt
       }
+      customerUserErrors {
+        code
+        field
+        message
+      }
+    }
+  }
+`
+
+export const CUSTOMER_RECOVER_MUTATION = `
+  mutation customerRecover($email: String!) {
+    customerRecover(email: $email) {
       customerUserErrors {
         code
         field
