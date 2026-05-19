@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
-import { ArrowRight, BadgeCheck, Gem, Heart, LockKeyhole, MapPin, ShoppingBag, Sparkles } from 'lucide-react'
+import { ArrowRight, BadgeCheck, Gem, Heart, LockKeyhole, LogOut, MapPin, ShoppingBag, Sparkles, Truck } from 'lucide-react'
 import FloatInput from '../components/UI/FloatInput'
 import SmartImage from '../components/UI/SmartImage'
 import SEO from '../components/SEO/SEO'
@@ -17,7 +17,7 @@ const HERO_IMAGE =
 export default function Login() {
   const navigate = useNavigate()
   const { products } = useShopifyProducts({ first: 12 })
-  const { user, isAuthenticated, login, register, logout, fetchOrders, fetchProfile, loading, error: authError } = useShopifyAuth()
+  const { user, isAuthenticated, login, register, logout, recoverPassword, fetchOrders, fetchProfile, loading, error: authError } = useShopifyAuth()
 
   const [tab, setTab] = useState('login')
   const [dashboardTab, setDashboardTab] = useState('overview')
@@ -88,32 +88,43 @@ export default function Login() {
       fetchProfile()
       
       setOrdersLoading(true)
-      fetchOrders().then(data => {
-        setOrders(data)
-        setOrdersLoading(false)
-      })
+      fetchOrders()
+        .then(data => {
+          setOrders(data || [])
+          setOrdersLoading(false)
+        })
+        .catch(err => {
+          console.error('Failed to load orders:', err)
+          setOrders([])
+          setOrdersLoading(false)
+        })
     }
-  }, [isAuthenticated, fetchProfile, fetchOrders])
+  }, [isAuthenticated])
   
   const setField = (key) => (event) =>
     setForm((current) => ({
       ...current,
-      [key]: sanitizeText(event.target.value),
+      [key]: key === 'password' ? event.target.value : sanitizeText(event.target.value),
     }))
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     try {
+      const submitEmail = form.email.trim()
       if (tab === 'login') {
-        await login(form.email, form.password)
+        await login(submitEmail, form.password)
         navigate('/')
-      } else {
+      } else if (tab === 'register') {
         const nameParts = form.name.split(' ')
         const firstName = nameParts[0]
         const lastName = nameParts.slice(1).join(' ') || '-'
-        await register(firstName, lastName, form.email, form.password)
+        await register(firstName, lastName, submitEmail, form.password)
         setTab('login')
         alert('Account created! Please sign in.')
+      } else if (tab === 'forgot') {
+        await recoverPassword(submitEmail)
+        alert('Password recovery email sent. Please check your inbox.')
+        setTab('login')
       }
     } catch (err) {
       console.error('Auth error:', err)
@@ -121,7 +132,7 @@ export default function Login() {
   }
 
   return (
-    <main className={`h-[100dvh] overflow-hidden bg-espresso ${!isAuthenticated ? 'px-4 pb-4 pt-[96px] sm:px-6 lg:px-8' : ''}`}>
+    <main className={`${!isAuthenticated ? 'bg-espresso h-[100dvh] overflow-hidden px-4 pb-4 pt-[96px] sm:px-6 lg:px-8' : 'bg-cream min-h-screen pb-16'}`}>
       <SEO
         title={isAuthenticated ? 'Your Account' : 'Sign In'}
         description="Manage your Little Essentials account, orders, and preferences."
@@ -219,7 +230,7 @@ export default function Login() {
           </section>
         )}
 
-        <section className={`relative flex min-h-0 flex-col overflow-hidden px-5 py-8 sm:px-8 lg:px-12 ${isAuthenticated ? 'w-full pt-[100px]' : 'items-center justify-center'}`}>
+        <section className={`relative flex min-h-0 flex-col px-5 py-8 sm:px-8 lg:px-12 ${isAuthenticated ? 'w-full pt-[100px]' : 'items-center justify-center overflow-hidden'}`}>
           <motion.div
             initial={{ opacity: 0, y: 28 }}
             animate={{ opacity: 1, y: 0 }}
@@ -229,30 +240,22 @@ export default function Login() {
             <div className="mb-8 flex items-end justify-between border-b border-cappuccino/20 pb-6">
               <div>
                 <p className="mb-2 font-dm text-[10px] font-semibold uppercase tracking-ultra text-caramel">
-                  {isAuthenticated ? 'Private Account' : (tab === 'login' ? 'Welcome back' : 'Join the edit')}
+                  {isAuthenticated ? 'Private Account' : (tab === 'login' ? 'Welcome back' : tab === 'forgot' ? 'Reset password' : 'Join the edit')}
                 </p>
                 <h2 className="font-playfair text-[clamp(32px,5vw,48px)] font-bold leading-tight text-espresso">
-                  {isAuthenticated ? `Hello, ${user?.firstName}.` : (tab === 'login' ? 'Continue beautifully.' : 'Create your account.')}
+                  {isAuthenticated ? `Hello, ${user?.firstName}.` : (tab === 'login' ? 'Continue beautifully.' : tab === 'forgot' ? 'Recover access.' : 'Create your account.')}
                 </h2>
               </div>
-              {isAuthenticated && (
-                <div className="flex items-center gap-3">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-espresso text-cream">
-                    <span className="font-playfair text-lg font-bold">
-                      {user?.firstName?.[0]}{user?.lastName?.[0]}
-                    </span>
-                  </div>
-                </div>
-              )}
             </div>
 
             {isAuthenticated ? (
               <div className="grid h-full gap-8 lg:grid-cols-[240px_1fr]">
                 {/* Sidebar Navigation */}
-                <div className="flex flex-col gap-2 border-r border-cappuccino/10 pr-6">
+                <div className="flex flex-col h-full min-h-[400px] gap-2 border-r border-cappuccino/10 pr-6">
                   {[
                     { id: 'overview', label: 'Dashboard', icon: Sparkles },
                     { id: 'orders', label: 'Order History', icon: ShoppingBag },
+                    { id: 'track', label: 'Track Your Order', icon: Truck },
                     { id: 'addresses', label: 'Saved Addresses', icon: MapPin },
                     { id: 'wishlist', label: 'Your Wishlist', icon: Heart },
                   ].map((t) => (
@@ -270,12 +273,13 @@ export default function Login() {
                     </button>
                   ))}
                   
-                  <div className="mt-auto pt-6">
+                  <div className="mt-auto">
+                    <div className="my-2 border-t border-cappuccino/10 pt-2" />
                     <button
                       onClick={logout}
-                      className="flex w-full items-center gap-3 rounded-xl border border-red-100 px-4 py-3 font-dm text-[14px] font-medium text-red-500 transition-all hover:bg-red-50"
+                      className="flex w-full items-center gap-3 rounded-xl px-4 py-3 font-dm text-[14px] font-semibold text-red-500 transition-all hover:bg-red-50/50"
                     >
-                      <ArrowRight size={16} className="rotate-180" />
+                      <LogOut size={16} />
                       Sign Out
                     </button>
                   </div>
@@ -538,6 +542,46 @@ export default function Login() {
                       </motion.div>
                     )}
 
+                    {dashboardTab === 'track' && (
+                      <motion.div
+                        key="track"
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: -20 }}
+                        className="space-y-6"
+                      >
+                        <div className="rounded-2xl border border-cappuccino/30 bg-white/50 p-6 shadow-sm">
+                          <h3 className="mb-2 font-playfair text-xl font-bold text-espresso">Track Your Order</h3>
+                          <p className="mb-6 font-dm text-sm text-mocha">Enter your Order ID (e.g. LE-2025-08847) to track shipping progress and delivery status in real-time.</p>
+                          
+                          <div className="max-w-md">
+                            <form onSubmit={(e) => {
+                              e.preventDefault()
+                              const orderId = e.target.orderId.value.trim()
+                              if (orderId) {
+                                navigate(`/order/${orderId}/track`)
+                              }
+                            }} className="flex gap-3">
+                              <input
+                                type="text"
+                                name="orderId"
+                                placeholder="Order ID (LE-XXXXX)"
+                                defaultValue="LE-2025-08847"
+                                className="h-11 flex-1 rounded-[8px] border border-cappuccino/40 bg-white pl-4 font-dm text-sm text-espresso outline-none transition-colors focus:border-caramel"
+                                required
+                              />
+                              <button
+                                type="submit"
+                                className="inline-flex h-11 items-center justify-center rounded-[8px] bg-espresso px-6 font-dm text-sm font-semibold text-cream transition-colors hover:bg-mocha"
+                              >
+                                Track Status
+                              </button>
+                            </form>
+                          </div>
+                        </div>
+                      </motion.div>
+                    )}
+
                     {dashboardTab === 'wishlist' && (
                       <motion.div
                         key="wishlist"
@@ -603,14 +647,16 @@ export default function Login() {
                           onChange={setField('email')}
                           required
                         />
-                        <FloatInput
-                          label="Password"
-                          name="password"
-                          type="password"
-                          value={form.password}
-                          onChange={setField('password')}
-                          required
-                        />
+                        {tab !== 'forgot' && (
+                          <FloatInput
+                            label="Password"
+                            name="password"
+                            type="password"
+                            value={form.password}
+                            onChange={setField('password')}
+                            required
+                          />
+                        )}
                       </div>
 
                       {authError && (
@@ -621,10 +667,19 @@ export default function Login() {
 
                       {tab === 'login' ? (
                         <button
+                          onClick={() => setTab('forgot')}
                           className="mb-4 block w-full text-right font-dm text-[12px] font-semibold text-caramel underline underline-offset-4"
                           type="button"
                         >
                           Forgot Password?
+                        </button>
+                      ) : tab === 'forgot' ? (
+                        <button
+                          onClick={() => setTab('login')}
+                          className="mb-4 block w-full text-center font-dm text-[12px] font-semibold text-mocha hover:text-espresso transition-colors"
+                          type="button"
+                        >
+                          Back to Sign In
                         </button>
                       ) : null}
 
@@ -633,7 +688,7 @@ export default function Login() {
                         type="submit"
                         disabled={loading}
                       >
-                        {loading ? 'Processing...' : (tab === 'login' ? 'Sign In' : 'Create Account')}
+                        {loading ? 'Processing...' : (tab === 'login' ? 'Sign In' : tab === 'forgot' ? 'Send Link' : 'Create Account')}
                         {!loading && (
                           <ArrowRight
                             size={15}
@@ -641,6 +696,8 @@ export default function Login() {
                           />
                         )}
                       </button>
+
+                      {/* Google login removed as it requires backend OAuth */}
                     </form>
                   </motion.div>
                 </AnimatePresence>

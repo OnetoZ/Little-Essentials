@@ -105,6 +105,7 @@ export default function ProductInfo({ product }) {
   )
   const [qty, setQty] = useState(1)
   const [addedAnim, setAddedAnim] = useState(false)
+  const [isExpanded, setIsExpanded] = useState(false)
 
   const { addToCart, openCart, toggleWishlist, wishlist } = useStore()
   const isWished = wishlist.includes(product.id)
@@ -127,7 +128,7 @@ export default function ProductInfo({ product }) {
   }
 
   return (
-    <div className="w-full pt-8 lg:w-[45%] lg:pl-14 lg:pt-0">
+    <div className="w-full pt-8 lg:w-[55%] lg:pl-14 lg:pt-0">
       <p className="mb-4 font-dm text-[12px] text-caramel">
         Home <span className="mx-1 opacity-40">/</span>
         Collections <span className="mx-1 opacity-40">/</span>
@@ -182,7 +183,31 @@ export default function ProductInfo({ product }) {
       <div className="mb-6 h-px bg-cappuccino/50" />
 
       <p className="mb-6 font-dm text-[15px] font-light leading-[1.75] text-espresso/75">
-        {product.description}
+        {product.description.length > 180 && !isExpanded ? (
+          <>
+            {product.description.slice(0, 180)}
+            <button
+              onClick={() => setIsExpanded(true)}
+              className="font-bold text-caramel hover:text-espresso ml-1 focus:outline-none transition-colors"
+              aria-label="Read more description"
+            >
+              ... Read More
+            </button>
+          </>
+        ) : (
+          <>
+            {product.description}
+            {product.description.length > 180 && (
+              <button
+                onClick={() => setIsExpanded(false)}
+                className="font-bold text-caramel hover:text-espresso ml-2 focus:outline-none transition-colors text-[13px]"
+                aria-label="Read less description"
+              >
+                Read Less
+              </button>
+            )}
+          </>
+        )}
       </p>
 
       {variantName && variantValues ? (

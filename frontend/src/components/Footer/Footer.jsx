@@ -52,7 +52,6 @@ const CARE_LINKS = [
   { label: 'Shipping Policy', path: '/shipping' },
   { label: 'Returns', path: '/returns' },
   { label: 'Size Guide', path: '/size-guide' },
-  { label: 'Track Your Order', path: '/order/LE-2025-08847/track' },
 ]
 
 const SOCIAL = [
@@ -109,28 +108,6 @@ export default function Footer() {
 
   return (
     <footer className="relative overflow-hidden bg-espresso">
-      <div className="relative overflow-hidden border-b border-cream/[0.04] py-4">
-        <motion.div
-          animate={{ x: ['0%', '-50%'] }}
-          transition={{ duration: 25, repeat: Infinity, ease: 'linear' }}
-          className="flex whitespace-nowrap will-change-transform"
-        >
-          {Array.from({ length: 4 }).map((_, index) => (
-            <span
-              key={index}
-              className="select-none pr-8 font-playfair font-black"
-              style={{
-                fontSize: 'clamp(48px, 8vw, 72px)',
-                color: 'rgba(243,233,215,0.05)',
-                letterSpacing: '0.02em',
-              }}
-            >
-              LITTLE&nbsp;&nbsp;ESSENTIALS&nbsp;&nbsp;
-            </span>
-          ))}
-        </motion.div>
-      </div>
-
       <div className="mx-auto max-w-screen-xl px-8 pb-12 pt-14 lg:px-16">
         <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-4 lg:gap-6">
           <div className="sm:col-span-2 lg:col-span-1">

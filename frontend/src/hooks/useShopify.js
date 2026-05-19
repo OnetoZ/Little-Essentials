@@ -38,6 +38,7 @@ export function useShopifyProducts({
   category = 'All',
   filter = '',
   search = '',
+  collectionHandle = '',
 } = {}) {
   const [products, setProducts] = useState([])
   const [loading, setLoading] = useState(true)
@@ -60,7 +61,10 @@ export function useShopifyProducts({
             : [...mockProducts]
 
         if (filter === 'new') {
-          result = result.filter((p) => p.isNew)
+          const filtered = result.filter((p) => p.isNew)
+          if (filtered.length > 0) {
+            result = filtered
+          }
         }
 
         if (search) {
@@ -119,6 +123,17 @@ export function useShopifyProducts({
         })
         edges = data.search.edges
         pageInfo = { hasNextPage: false, endCursor: null }
+      } else if (collectionHandle) {
+        const collSortKey = sortKey === 'CREATED_AT' ? 'CREATED' : sortKey
+        data = await storefrontFetch(COLLECTION_BY_HANDLE_QUERY, {
+          handle: collectionHandle,
+          first,
+          after: null,
+          sortKey: collSortKey,
+          reverse,
+        })
+        edges = data.collection?.products?.edges || []
+        pageInfo = data.collection?.products?.pageInfo || { hasNextPage: false, endCursor: null }
       } else {
         data = await storefrontFetch(ALL_PRODUCTS_QUERY, {
           first,
@@ -134,16 +149,12 @@ export function useShopifyProducts({
 
       let normalized = normalizeProductEdges(edges)
 
-      // Client-side category filter
-      if (category && category !== 'All') {
-        normalized = normalized.filter(
-          (p) => p.category.toLowerCase() === category.toLowerCase(),
-        )
-      }
-
       // "new" filter
       if (filter === 'new') {
-        normalized = normalized.filter((p) => p.isNew)
+        const filtered = normalized.filter((p) => p.isNew)
+        if (filtered.length > 0) {
+          normalized = filtered
+        }
       }
 
       setProducts(normalized)
@@ -161,7 +172,7 @@ export function useShopifyProducts({
     } finally {
       if (id === abortRef.current) setLoading(false)
     }
-  }, [first, sortKey, reverse, category, filter, search])
+  }, [first, sortKey, reverse, category, filter, search, collectionHandle])
 
   useEffect(() => {
     load()
@@ -173,17 +184,36 @@ export function useShopifyProducts({
 
     setLoading(true)
     try {
-      const data = await storefrontFetch(ALL_PRODUCTS_QUERY, {
-        first,
-        after: endCursor,
-        sortKey,
-        reverse,
-      })
+      let data
+      let edges
+      let info
 
-      const newProducts = normalizeProductEdges(data.products.edges)
+      if (collectionHandle) {
+        const collSortKey = sortKey === 'CREATED_AT' ? 'CREATED' : sortKey
+        data = await storefrontFetch(COLLECTION_BY_HANDLE_QUERY, {
+          handle: collectionHandle,
+          first,
+          after: endCursor,
+          sortKey: collSortKey,
+          reverse,
+        })
+        edges = data.collection?.products?.edges || []
+        info = data.collection?.products?.pageInfo
+      } else {
+        data = await storefrontFetch(ALL_PRODUCTS_QUERY, {
+          first,
+          after: endCursor,
+          sortKey,
+          reverse,
+        })
+        edges = data.products.edges
+        info = data.products.pageInfo
+      }
+
+      const newProducts = normalizeProductEdges(edges)
       setProducts((prev) => [...prev, ...newProducts])
-      setHasNextPage(data.products.pageInfo?.hasNextPage ?? false)
-      setEndCursor(data.products.pageInfo?.endCursor ?? null)
+      setHasNextPage(info?.hasNextPage ?? false)
+      setEndCursor(info?.endCursor ?? null)
     } catch (err) {
       console.error('[useShopifyProducts:loadMore]', err)
       setError(err.message)

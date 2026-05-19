@@ -30,7 +30,7 @@ export default function TrustSignals() {
   return (
     <section className="overflow-hidden bg-cream-light px-8 py-16 lg:px-16 lg:py-20">
       <div className="mx-auto max-w-screen-xl">
-        <div className="mb-10 grid gap-6 lg:grid-cols-[0.85fr_1.15fr] lg:items-end">
+        <div className="mb-12 flex flex-col gap-10">
           <motion.div
             initial={{ opacity: 0, y: 24 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -40,26 +40,28 @@ export default function TrustSignals() {
             <p className="mb-4 font-dm text-[11px] font-semibold uppercase tracking-ultra text-caramel">
               Trusted by thoughtful shoppers
             </p>
-            <h2 className="max-w-[560px] font-playfair text-[clamp(42px,6vw,78px)] font-bold leading-[0.9] text-espresso">
-              Confidence, designed into every step.
+            <h2 className="max-w-none whitespace-nowrap font-playfair text-[clamp(42px,6vw,78px)] font-bold leading-[0.9] text-espresso">
+              Confidence,<br />designed into<br />every step.
             </h2>
           </motion.div>
 
-          <motion.div
-            aria-hidden="true"
-            animate={{ x: ['0%', '-50%'] }}
-            transition={{ duration: 22, repeat: Infinity, ease: 'linear' }}
-            className="hidden whitespace-nowrap lg:flex"
-          >
-            {[...QUOTES, ...QUOTES].map((quote, index) => (
-              <span
-                key={`${quote}-${index}`}
-                className="mr-8 rounded-full border border-cappuccino/55 bg-cream px-5 py-3 font-dm text-[12px] font-semibold text-mocha/70 shadow-[0_10px_34px_rgba(59,42,34,0.05)]"
-              >
-                {quote}
-              </span>
-            ))}
-          </motion.div>
+          <div className="hidden overflow-hidden lg:block [mask-image:linear-gradient(to_right,transparent,black_5%,black_95%,transparent)]">
+            <motion.div
+              aria-hidden="true"
+              animate={{ x: ['0%', '-50%'] }}
+              transition={{ duration: 22, repeat: Infinity, ease: 'linear' }}
+              className="flex w-fit whitespace-nowrap"
+            >
+              {[...QUOTES, ...QUOTES].map((quote, index) => (
+                <span
+                  key={`${quote}-${index}`}
+                  className="mr-8 rounded-full border border-cappuccino/55 bg-cream px-5 py-3 font-dm text-[12px] font-semibold text-mocha/70 shadow-[0_10px_34px_rgba(59,42,34,0.05)]"
+                >
+                  {quote}
+                </span>
+              ))}
+            </motion.div>
+          </div>
         </div>
 
         <div className="grid gap-4 md:grid-cols-3">

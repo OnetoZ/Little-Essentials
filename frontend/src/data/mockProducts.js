@@ -1,24 +1,5 @@
 export const products = [
-  {
-    id: 'p001',
-    brand: 'AESOP',
-    category: 'Skincare',
-    name: 'Resurrection Aromatique Hand Balm',
-    price: 2400,
-    originalPrice: null,
-    rating: 4.8,
-    reviewCount: 124,
-    isNew: true,
-    isSoldOut: false,
-    images: [
-      'https://images.unsplash.com/photo-1571781926291-c477ebfd024b?w=800&q=85',
-      'https://images.unsplash.com/photo-1556228578-0d85b1a4d571?w=800&q=85',
-      'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=800&q=85',
-    ],
-    description:
-      'A beautifully textured balm that deeply nourishes and replenishes the skin.',
-    variants: { size: ['75mL', '150mL', '300mL'] },
-  },
+
   {
     id: 'p002',
     brand: 'PADDYWAX',
@@ -107,25 +88,7 @@ export const products = [
     description: 'Hand-polished solid brass. A minimal sculpture for your desk.',
     variants: { finish: ['Brass', 'Matte Black'] },
   },
-  {
-    id: 'p007',
-    brand: 'SUSANNE KAUFMANN',
-    category: 'Skincare',
-    name: 'Nutrient Face Serum',
-    price: 6900,
-    originalPrice: null,
-    rating: 4.6,
-    reviewCount: 73,
-    isNew: false,
-    isSoldOut: false,
-    images: [
-      'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=800&q=85',
-      'https://images.unsplash.com/photo-1629198735660-e39ea93f5c18?w=800&q=85',
-    ],
-    description:
-      'A concentrated serum formulated to support a luminous, well-rested complexion.',
-    variants: { size: ['30mL'] },
-  },
+
   {
     id: 'p008',
     brand: 'ASSOULINE',
@@ -183,24 +146,7 @@ export const products = [
       'Textured organic cotton with a dry hand feel and spa-level softness.',
     variants: { color: ['Ivory', 'Sage', 'Terracotta'] },
   },
-  {
-    id: 'p011',
-    brand: 'MALIN+GOETZ',
-    category: 'Skincare',
-    name: 'Eucalyptus Deodorant',
-    price: 2200,
-    originalPrice: null,
-    rating: 4.5,
-    reviewCount: 94,
-    isNew: true,
-    isSoldOut: false,
-    images: [
-      'https://images.unsplash.com/photo-1611930022073-b7a4ba5fcccd?w=800&q=85',
-      'https://images.unsplash.com/photo-1614859324967-66c5c6c0e541?w=800&q=85',
-    ],
-    description: 'A crisp, residue-free deodorant for polished everyday freshness.',
-    variants: { size: ['73g'] },
-  },
+
   {
     id: 'p012',
     brand: 'JO MALONE',
@@ -224,7 +170,6 @@ export const products = [
 
 export const categories = [
   'All',
-  'Skincare',
   'Home',
   'Fragrance',
   'Stationery',

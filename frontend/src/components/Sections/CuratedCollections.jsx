@@ -5,7 +5,6 @@ import SmartImage from '../UI/SmartImage'
 import { useShopifyCollections, useShopifyProducts } from '../../hooks/useShopify'
 
 const COPY = {
-  Skincare: 'Rituals that make care feel precise.',
   Home: 'Objects that quiet the room.',
   Fragrance: 'Scents with memory and restraint.',
   Stationery: 'Desk pieces with a point of view.',
@@ -13,21 +12,30 @@ const COPY = {
 }
 
 export default function CuratedCollections() {
-  const { categories } = useShopifyCollections()
+  const { collections, categories } = useShopifyCollections()
   const { products } = useShopifyProducts({ first: 24 })
 
-  const COLLECTIONS = categories.slice(1).map((category) => {
-    const items = products.filter(
-      (p) => p.category.toLowerCase() === category.toLowerCase(),
-    )
+  const COLLECTIONS = collections.length > 0
+    ? collections.map((col) => {
+        return {
+          category: col.title,
+          count: col.products.length,
+          products: col.products,
+          text: COPY[col.title] ?? 'A considered edit.',
+        }
+      }).filter((c) => c.products.length > 0)
+    : categories.slice(1).map((category) => {
+        const items = products.filter(
+          (p) => p.category.toLowerCase() === category.toLowerCase(),
+        )
 
-    return {
-      category,
-      count: items.length,
-      products: items.length ? items : products.slice(0, 2),
-      text: COPY[category] ?? 'A considered edit.',
-    }
-  }).filter((c) => c.products.length > 0)
+        return {
+          category,
+          count: items.length,
+          products: items.length ? items : products.slice(0, 2),
+          text: COPY[category] ?? 'A considered edit.',
+        }
+      }).filter((c) => c.products.length > 0)
 
   return (
     <section className="overflow-hidden bg-espresso px-8 py-20 lg:px-16 lg:py-28">

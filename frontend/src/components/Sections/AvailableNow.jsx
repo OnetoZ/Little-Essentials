@@ -16,7 +16,7 @@ export default function AvailableNow() {
         </div>
       )
     }
-    
+
     const product = featured[index]
     if (!product) return null
 
