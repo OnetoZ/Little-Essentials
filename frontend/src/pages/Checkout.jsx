@@ -18,6 +18,21 @@ import { useShopifyAuth } from '../hooks/useShopifyAuth'
 import useStore from '../store/useStore'
 import { sanitizeText } from '../utils/sanitize'
 
+const loadRazorpayScript = () => {
+  return new Promise((resolve) => {
+    if (window.Razorpay) {
+      resolve(true)
+      return
+    }
+    const script = document.createElement('script')
+    script.src = 'https://checkout.razorpay.com/v1/checkout.js'
+    script.async = true
+    script.onload = () => resolve(true)
+    script.onerror = () => resolve(false)
+    document.body.appendChild(script)
+  })
+}
+
 const STEPS = ['Information', 'Shipping', 'Payment']
 const SHIPPING_METHODS = {
   standard: {
@@ -491,110 +506,77 @@ ShippingStep.propTypes = {
   setMethod: PropTypes.func.isRequired,
 }
 
-function validatePayment(form) {
-  const errors = {}
-  const digits = form.cardNumber.replace(/\s/g, '')
-
-  if (!digits || digits.length < 12) errors.cardNumber = 'Enter a card number'
-  if (!form.expiry || !/^\d{2}\/\d{2}$/.test(form.expiry)) {
-    errors.expiry = 'Use MM/YY'
-  }
-  if (!form.cvv || form.cvv.length < 3) errors.cvv = 'Enter CVV'
-  if (!form.cardName) errors.cardName = 'Name is required'
-
-  return errors
-}
-
-function PaymentStep({ form, setForm, onSubmit, onBack, loading }) {
-  const [touched, setTouched] = useState({})
-  const [submitted, setSubmitted] = useState(false)
-  const errors = useMemo(() => validatePayment(form), [form])
-  const setField = (key) => (event) =>
-    setForm((current) => ({
-      ...current,
-      [key]: sanitizeText(event.target.value),
-    }))
-  const touch = (key) => () =>
-    setTouched((current) => ({ ...current, [key]: true }))
-  const shouldShow = (key) => touched[key] || submitted
-  const fieldError = (key) => (shouldShow(key) ? errors[key] : '')
-  const fieldSuccess = (key) =>
-    shouldShow(key) && !errors[key] && Boolean(form[key])
-
-  const handleSubmit = () => {
-    setSubmitted(true)
-    if (Object.keys(errors).length === 0) onSubmit()
-  }
-
+function PaymentStep({ customerInfo, totalAmount, onBack, onPay, loading, error }) {
   return (
-    <div className="space-y-4">
-      <div className="space-y-3 rounded-[8px] border border-cappuccino p-4">
-        <p className="font-dm text-[11px] uppercase tracking-ultra text-caramel">
-          Card Information
+    <div className="space-y-6">
+      <div className="rounded-[8px] border border-cappuccino/30 bg-cream-light p-6 space-y-4">
+        <p className="font-dm text-[11px] font-medium uppercase tracking-ultra text-caramel">
+          Review Order Details
         </p>
-        <FloatInput
-          label="Card number"
-          name="cardNumber"
-          inputMode="numeric"
-          value={form.cardNumber}
-          onChange={setField('cardNumber')}
-          onBlur={touch('cardNumber')}
-          error={fieldError('cardNumber')}
-          success={fieldSuccess('cardNumber')}
-        />
-        <div className="grid grid-cols-2 gap-3">
-          <FloatInput
-            label="Expiry (MM/YY)"
-            name="expiry"
-            value={form.expiry}
-            onChange={setField('expiry')}
-            onBlur={touch('expiry')}
-            error={fieldError('expiry')}
-            success={fieldSuccess('expiry')}
-          />
-          <FloatInput
-            label="CVV"
-            name="cvv"
-            type="password"
-            inputMode="numeric"
-            value={form.cvv}
-            onChange={setField('cvv')}
-            onBlur={touch('cvv')}
-            error={fieldError('cvv')}
-            success={fieldSuccess('cvv')}
-          />
+        
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 text-[13px] font-dm border-b border-cappuccino/20 pb-4">
+          <div>
+            <p className="text-caramel font-medium mb-1">Contact Email</p>
+            <p className="text-espresso font-semibold break-all">{customerInfo.email}</p>
+            {customerInfo.phone && (
+              <>
+                <p className="text-caramel font-medium mt-2 mb-1">Phone Number</p>
+                <p className="text-espresso font-semibold">{customerInfo.phone}</p>
+              </>
+            )}
+          </div>
+          <div>
+            <p className="text-caramel font-medium mb-1">Shipping Address</p>
+            <p className="text-espresso font-semibold leading-relaxed">
+              {customerInfo.firstName} {customerInfo.lastName}
+              <br />
+              {customerInfo.address}
+              {customerInfo.address2 ? `, ${customerInfo.address2}` : ''}
+              <br />
+              {customerInfo.city}, {customerInfo.state} - {customerInfo.pincode}
+            </p>
+          </div>
         </div>
-        <FloatInput
-          label="Name on card"
-          name="cardName"
-          value={form.cardName}
-          onChange={setField('cardName')}
-          onBlur={touch('cardName')}
-          error={fieldError('cardName')}
-          success={fieldSuccess('cardName')}
-        />
+
+        <div className="pt-2">
+          <p className="font-dm text-[12px] text-caramel leading-relaxed">
+            Payments are processed securely via **Razorpay**. You can pay using UPI (Google Pay, PhonePe), credit/debit cards, Net Banking, or popular wallets.
+          </p>
+        </div>
+
+        {error && (
+          <div className="rounded-[4px] bg-red-50 border border-red-200 p-3 text-[12px] font-dm text-red-600">
+            {error}
+          </div>
+        )}
       </div>
 
       <div className="flex gap-3 pt-2">
         <button
           onClick={onBack}
-          className="flex items-center gap-1 font-dm text-[13px] text-caramel transition-colors duration-250 ease-smooth hover:text-espresso"
+          disabled={loading}
+          className="flex items-center gap-1 font-dm text-[13px] text-caramel transition-colors duration-250 ease-smooth hover:text-espresso disabled:opacity-50"
           type="button"
         >
           <ChevronLeft size={15} /> Back
         </button>
         <button
-          onClick={handleSubmit}
+          onClick={onPay}
           disabled={loading}
-          className="flex h-[52px] flex-1 items-center justify-center gap-2 rounded-[4px] bg-mocha font-dm text-[14px] font-medium text-cream transition-colors duration-250 ease-smooth hover:bg-espresso disabled:opacity-70"
+          className="flex h-[52px] flex-1 items-center justify-center gap-2 rounded-[4px] bg-mocha font-dm text-[14px] font-medium text-cream transition-colors duration-250 ease-smooth hover:bg-espresso disabled:opacity-75 active:scale-[0.98]"
           type="button"
         >
           {loading ? (
-            <Loader2 size={15} className="animate-spin" />
+            <>
+              <Loader2 size={15} className="animate-spin" />
+              <span>Processing Payment...</span>
+            </>
           ) : (
-            <Lock size={15} />
+            <>
+              <Lock size={15} />
+              <span>Pay Now (₹{totalAmount.toLocaleString('en-IN')})</span>
+            </>
           )}
-          {loading ? 'Processing...' : 'Place Order'}
         </button>
       </div>
     </div>
@@ -602,16 +584,18 @@ function PaymentStep({ form, setForm, onSubmit, onBack, loading }) {
 }
 
 PaymentStep.propTypes = {
-  form: PropTypes.object.isRequired,
+  customerInfo: PropTypes.object.isRequired,
+  error: PropTypes.string,
   loading: PropTypes.bool.isRequired,
   onBack: PropTypes.func.isRequired,
-  onSubmit: PropTypes.func.isRequired,
-  setForm: PropTypes.func.isRequired,
+  onPay: PropTypes.func.isRequired,
+  totalAmount: PropTypes.number.isRequired,
 }
 
 export default function Checkout() {
   const [step, setStep] = useState(0)
-  const [loading, setLoading] = useState(false)
+  const [paymentLoading, setPaymentLoading] = useState(false)
+  const [paymentError, setPaymentError] = useState(null)
   const [shippingMethod, setShippingMethod] = useState('standard')
   const [information, setInformation] = useState({
     email: '',
@@ -624,17 +608,10 @@ export default function Checkout() {
     state: '',
     pincode: '',
   })
-  const [payment, setPayment] = useState({
-    cardNumber: '',
-    expiry: '',
-    cvv: '',
-    cardName: '',
-  })
   const navigate = useNavigate()
   const cartItems = useStore((state) => state.cartItems)
   const subtotal = useStore((state) => state.cartTotal())
   const { user, isAuthenticated } = useShopifyAuth()
-  const { guard } = useOnce()
 
   // Pre-fill user data if authenticated
   useMemo(() => {
@@ -656,12 +633,110 @@ export default function Checkout() {
 
   const shippingCost = SHIPPING_METHODS[shippingMethod].price
 
-  const handleOrder = () => {
-    setLoading(true)
-    window.setTimeout(() => {
-      setLoading(false)
-      navigate('/order/LE-2025-08847/track')
-    }, 2000)
+  const handleRazorpayPayment = async () => {
+    setPaymentLoading(true)
+    setPaymentError(null)
+
+    try {
+      const isScriptLoaded = await loadRazorpayScript()
+      if (!isScriptLoaded) {
+        throw new Error('Razorpay SDK failed to load. Please check your internet connection.')
+      }
+
+      const totalPaise = Math.round((subtotal + shippingCost) * 100)
+
+      const response = await fetch('/api/create-order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          amount: totalPaise,
+          currency: 'INR',
+          receipt: `rcpt_${Date.now()}`
+        })
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.error || 'Failed to initialize payment order with server.')
+      }
+
+      const orderData = await response.json()
+      const { order_id } = orderData
+
+      const options = {
+        key: import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_test_T0LCuO4VTQIgd0',
+        amount: totalPaise,
+        currency: 'INR',
+        name: 'Little Essentials',
+        description: 'Lifestyle Store Checkout',
+        order_id: order_id,
+        handler: async function (razorpayResponse) {
+          setPaymentLoading(true)
+          try {
+            const verifyRes = await fetch('/api/verify-payment', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                razorpay_order_id: razorpayResponse.razorpay_order_id,
+                razorpay_payment_id: razorpayResponse.razorpay_payment_id,
+                razorpay_signature: razorpayResponse.razorpay_signature,
+              })
+            })
+
+            if (!verifyRes.ok) {
+              const verifyError = await verifyRes.json().catch(() => ({}))
+              throw new Error(verifyError.error || 'Payment verification failed.')
+            }
+
+            const verifyData = await verifyRes.json()
+            if (verifyData.success) {
+              // Clear cart on successful payment
+              useStore.setState({ cartItems: [] })
+              
+              // Redirect to order tracking page
+              navigate(`/order/${order_id}/track`)
+            } else {
+              throw new Error('Verification failed: payment is not marked as paid.')
+            }
+          } catch (err) {
+            setPaymentError(err.message || 'Error verifying payment.')
+          } finally {
+            setPaymentLoading(false)
+          }
+        },
+        prefill: {
+          name: `${information.firstName} ${information.lastName}`,
+          email: information.email,
+          contact: information.phone || ''
+        },
+        notes: {
+          address: `${information.address}, ${information.address2 || ''}, ${information.city}, ${information.state} - ${information.pincode}`
+        },
+        theme: {
+          color: '#3B2A22'
+        },
+        modal: {
+          ondismiss: function () {
+            setPaymentLoading(false)
+            setPaymentError('Payment window was closed before completion.')
+          }
+        }
+      }
+
+      const rzp = new window.Razorpay(options)
+
+      rzp.on('payment.failed', function (response) {
+        console.error('Payment failure details:', response.error)
+        setPaymentError(`Payment failed: ${response.error.description}`)
+        setPaymentLoading(false)
+      })
+
+      rzp.open()
+    } catch (err) {
+      console.error('Razorpay initialization error:', err)
+      setPaymentError(err.message || 'An error occurred while setting up the payment modal.')
+      setPaymentLoading(false)
+    }
   }
 
   const currentStep = [
@@ -681,11 +756,12 @@ export default function Checkout() {
     />,
     <PaymentStep
       key="payment"
-      form={payment}
-      setForm={setPayment}
-      onSubmit={() => guard(handleOrder)}
+      customerInfo={information}
+      totalAmount={subtotal + shippingCost}
       onBack={() => setStep(1)}
-      loading={loading}
+      onPay={handleRazorpayPayment}
+      loading={paymentLoading}
+      error={paymentError}
     />,
   ]
 
