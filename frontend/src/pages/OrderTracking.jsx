@@ -212,9 +212,8 @@ export default function OrderTracking() {
                   </div>
                   <button
                     onClick={() => setSmsOn((current) => !current)}
-                    className={`relative h-6 w-12 rounded-full transition-colors duration-300 ${
-                      smsOn ? 'bg-mocha' : 'bg-cappuccino'
-                    }`}
+                    className={`relative h-6 w-12 rounded-full transition-colors duration-300 ${smsOn ? 'bg-mocha' : 'bg-cappuccino'
+                      }`}
                     aria-pressed={smsOn}
                     type="button"
                   >

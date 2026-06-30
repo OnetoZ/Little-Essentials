@@ -664,7 +664,7 @@ export default function Checkout() {
       const { order_id } = orderData
 
       const options = {
-        key: import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_test_T0LCuO4VTQIgd0',
+        key: import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_live_T7msUGTtcifr2z',
         amount: totalPaise,
         currency: 'INR',
         name: 'Little Essentials',
@@ -680,6 +680,9 @@ export default function Checkout() {
                 razorpay_order_id: razorpayResponse.razorpay_order_id,
                 razorpay_payment_id: razorpayResponse.razorpay_payment_id,
                 razorpay_signature: razorpayResponse.razorpay_signature,
+                cartItems: cartItems,
+                customerInfo: information,
+                totalAmount: subtotal + shippingCost
               })
             })
 
@@ -694,7 +697,7 @@ export default function Checkout() {
               useStore.setState({ cartItems: [] })
               
               // Redirect to order tracking page
-              navigate(`/order/${order_id}/track`)
+              navigate(`/order/${verifyData.shopify_order_id || order_id}/track`)
             } else {
               throw new Error('Verification failed: payment is not marked as paid.')
             }
