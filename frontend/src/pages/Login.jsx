@@ -9,6 +9,7 @@ import { sanitizeText } from '../utils/sanitize'
 import { useShopifyProducts } from '../hooks/useShopify'
 import { useShopifyAuth } from '../hooks/useShopifyAuth'
 import { useNavigate } from 'react-router-dom'
+import useStore from '../store/useStore'
 
 const HERO_IMAGE =
   'https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?w=1300&q=90'
@@ -24,6 +25,7 @@ export default function Login() {
   const [orders, setOrders] = useState([])
   const [ordersLoading, setOrdersLoading] = useState(false)
   const [form, setForm] = useState({ name: '', email: '', password: '' })
+  const wishlist = useStore((state) => state.wishlist)
   
   const [showAddressForm, setShowAddressForm] = useState(false)
   const [editingAddress, setEditingAddress] = useState(null)
@@ -303,7 +305,7 @@ export default function Login() {
                           </div>
                           <div className="rounded-2xl border border-cappuccino/30 bg-white/50 p-6 shadow-sm">
                             <p className="mb-1 font-dm text-[11px] font-bold uppercase tracking-wider text-caramel">Wishlist Items</p>
-                            <p className="font-playfair text-2xl font-bold text-espresso">0</p>
+                            <p className="font-playfair text-2xl font-bold text-espresso">{wishlist.length}</p>
                           </div>
                           <div className="rounded-2xl border border-cappuccino/30 bg-white/50 p-6 shadow-sm">
                             <p className="mb-1 font-dm text-[11px] font-bold uppercase tracking-wider text-caramel">Member Since</p>
@@ -588,13 +590,32 @@ export default function Login() {
                         initial={{ opacity: 0, x: 20 }}
                         animate={{ opacity: 1, x: 0 }}
                         exit={{ opacity: 0, x: -20 }}
-                        className="flex h-64 flex-col items-center justify-center text-center"
+                        className={wishlist.length === 0 ? "flex h-64 flex-col items-center justify-center text-center" : "space-y-6"}
                       >
-                        <Heart className="mb-4 text-cappuccino/40" size={48} />
-                        <p className="font-dm text-lg text-mocha">Your wishlist is currently empty.</p>
-                        <Link to="/collections" className="mt-4 font-dm text-sm font-bold text-caramel underline underline-offset-8">
-                          Browse New Arrivals
-                        </Link>
+                        {wishlist.length > 0 ? (
+                          <div className="rounded-2xl border border-cappuccino/30 bg-white/50 p-6 shadow-sm">
+                            <h3 className="mb-6 font-playfair text-xl font-bold text-espresso">Your Wishlist ({wishlist.length})</h3>
+                            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                              {/* Display simple cards for wishlisted items. In a full implementation, we would query the Storefront API for these specific IDs to show full product details. */}
+                              {wishlist.map(id => (
+                                <div key={id} className="rounded-xl border border-cappuccino/20 p-4 bg-white/80">
+                                  <p className="font-dm text-[11px] font-medium text-caramel mb-1 break-all truncate">ID: {id.split('/').pop()}</p>
+                                  <Link to={`/product/${id}`} className="font-dm text-sm font-bold text-espresso hover:text-caramel transition-colors">
+                                    View Product →
+                                  </Link>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        ) : (
+                          <>
+                            <Heart className="mb-4 text-cappuccino/40" size={48} />
+                            <p className="font-dm text-lg text-mocha">Your wishlist is currently empty.</p>
+                            <Link to="/collections" className="mt-4 font-dm text-sm font-bold text-caramel underline underline-offset-8">
+                              Browse New Arrivals
+                            </Link>
+                          </>
+                        )}
                       </motion.div>
                     )}
                   </AnimatePresence>

@@ -5,6 +5,7 @@ import dotenv from 'dotenv';
 // Import the serverless handlers directly to prevent logic duplication
 import createOrderHandler from './api/create-order.js';
 import verifyPaymentHandler from './api/verify-payment.js';
+import createCodOrderHandler from './api/create-cod-order.js';
 
 dotenv.config();
 
@@ -29,6 +30,7 @@ const expressToVercel = (handler) => {
 // Define endpoints matching Vercel's path mapping
 app.post('/api/create-order', expressToVercel(createOrderHandler));
 app.post('/api/verify-payment', expressToVercel(verifyPaymentHandler));
+app.post('/api/create-cod-order', expressToVercel(createCodOrderHandler));
 
 // Health / diagnostics endpoint
 app.get('/api/health', (req, res) => {

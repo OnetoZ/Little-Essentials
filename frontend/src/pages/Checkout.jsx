@@ -513,7 +513,7 @@ function PaymentStep({ customerInfo, totalAmount, onBack, onPay, loading, error 
         <p className="font-dm text-[11px] font-medium uppercase tracking-ultra text-caramel">
           Review Order Details
         </p>
-        
+
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 text-[13px] font-dm border-b border-cappuccino/20 pb-4">
           <div>
             <p className="text-caramel font-medium mb-1">Contact Email</p>
@@ -540,7 +540,7 @@ function PaymentStep({ customerInfo, totalAmount, onBack, onPay, loading, error 
 
         <div className="pt-2">
           <p className="font-dm text-[12px] text-caramel leading-relaxed">
-            Payments are processed securely via **Razorpay**. You can pay using UPI (Google Pay, PhonePe), credit/debit cards, Net Banking, or popular wallets.
+            Payments are processed securely via Razorpay. You can pay using UPI (Google Pay, PhonePe), credit/debit cards, Net Banking, or popular wallets.
           </p>
         </div>
 
@@ -574,7 +574,7 @@ function PaymentStep({ customerInfo, totalAmount, onBack, onPay, loading, error 
           ) : (
             <>
               <Lock size={15} />
-              <span>Pay Now (₹{totalAmount.toLocaleString('en-IN')})</span>
+              <span>Pay Now (&#8377;{totalAmount.toLocaleString('en-IN')})</span>
             </>
           )}
         </button>
@@ -682,6 +682,7 @@ export default function Checkout() {
                 razorpay_signature: razorpayResponse.razorpay_signature,
                 cartItems: cartItems,
                 customerInfo: information,
+                customerId: user?.id,
                 totalAmount: subtotal + shippingCost
               })
             })
@@ -742,6 +743,8 @@ export default function Checkout() {
     }
   }
 
+  const handlePaymentSubmit = handleRazorpayPayment
+
   const currentStep = [
     <InformationStep
       key="information"
@@ -762,7 +765,7 @@ export default function Checkout() {
       customerInfo={information}
       totalAmount={subtotal + shippingCost}
       onBack={() => setStep(1)}
-      onPay={handleRazorpayPayment}
+      onPay={handlePaymentSubmit}
       loading={paymentLoading}
       error={paymentError}
     />,
