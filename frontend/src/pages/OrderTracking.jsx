@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Bell, MapPin, Package, RotateCcw } from 'lucide-react'
@@ -11,60 +11,72 @@ import RevealOnScroll from '../components/UI/RevealOnScroll'
 import SmartImage from '../components/UI/SmartImage'
 import useStore from '../store/useStore'
 
-const MOCK_ORDER = {
-  id: 'LE-2025-08847',
-  status: 'in_transit',
-  product: {
-    id: 'p002',
-    name: 'Cypress & Fir Ceramic Candle',
-    brand: 'PADDYWAX',
-    price: 1800,
-    image:
-      'https://images.unsplash.com/photo-1602928298849-325cec8771cc?w=800&q=85',
-  },
-  estimatedDelivery: 'Thursday, 15 May 2025',
-  placedOn: 'Tuesday, 13 May 2025',
-  deliveryAddress: '42 Palm Grove, Bandra West, Mumbai — 400050',
-  stages: [
-    {
-      key: 'confirmed',
-      label: 'Order Confirmed',
-      date: 'May 13',
-      time: '10:22 AM',
-      done: true,
+
+function mapShopifyOrderToMock(shopifyOrder) {
+  if (!shopifyOrder) return null;
+
+  const lineItem = shopifyOrder.lineItems?.edges?.[0]?.node || {};
+  const isDelivered = shopifyOrder.displayFulfillmentStatus === 'FULFILLED';
+  const status = isDelivered ? 'delivered' : (shopifyOrder.displayFulfillmentStatus === 'UNFULFILLED' ? 'confirmed' : 'in_transit');
+
+  return {
+    id: shopifyOrder.name,
+    status: status,
+    product: {
+      id: lineItem.product?.id?.split('/').pop() || '0',
+      name: lineItem.title || 'Product',
+      brand: lineItem.product?.vendor || 'Little Essentials',
+      price: parseFloat(shopifyOrder.totalPriceSet?.shopMoney?.amount || 0),
+      image: lineItem.image?.url || 'https://images.unsplash.com/photo-1602928298849-325cec8771cc?w=800&q=85',
+      variantTitle: lineItem.variantTitle
     },
-    {
-      key: 'packed',
-      label: 'Packed',
-      date: 'May 13',
-      time: '02:45 PM',
-      done: true,
-    },
-    {
-      key: 'dispatched',
-      label: 'Dispatched',
-      date: 'May 14',
-      time: '08:30 AM',
-      done: true,
-    },
-    {
-      key: 'in_transit',
-      label: 'In Transit',
-      date: 'May 14',
-      time: '11:15 AM',
-      done: true,
-    },
-    {
-      key: 'delivered',
-      label: 'Delivered',
-      date: 'Est. May 15',
-      time: '',
-      done: false,
-    },
-  ],
-  currentUpdate:
-    'Your package is out for delivery. Current location: Andheri East, Mumbai',
+    estimatedDelivery: isDelivered ? 'Delivered' : 'Delivery estimate pending',
+    placedOn: new Date(shopifyOrder.createdAt).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }),
+    deliveryAddress: shopifyOrder.shippingAddress ? `${shopifyOrder.shippingAddress.address1}, ${shopifyOrder.shippingAddress.city} — ${shopifyOrder.shippingAddress.zip}` : 'Address pending',
+    stages: [
+      {
+        key: 'confirmed',
+        label: 'Order Confirmed',
+        date: new Date(shopifyOrder.createdAt).toLocaleDateString('en-GB', { month: 'short', day: 'numeric' }),
+        time: new Date(shopifyOrder.createdAt).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }),
+        done: true,
+      },
+      {
+        key: 'packed',
+        label: 'Packed',
+        date: '',
+        time: '',
+        done: shopifyOrder.displayFulfillmentStatus === 'PARTIALLY_FULFILLED' || isDelivered,
+      },
+      {
+        key: 'dispatched',
+        label: 'Dispatched',
+        date: '',
+        time: '',
+        done: isDelivered,
+      },
+      {
+        key: 'in_transit',
+        label: 'In Transit',
+        date: '',
+        time: '',
+        done: isDelivered,
+      },
+      {
+        key: 'delivered',
+        label: 'Delivered',
+        date: '',
+        time: '',
+        done: isDelivered,
+      },
+    ],
+    currentUpdate: shopifyOrder.fulfillments?.[0]?.trackingInfo?.[0]?.url 
+      ? `Track your package here: ${shopifyOrder.fulfillments[0].trackingInfo[0].url}` 
+      : 'Your order is confirmed and will be packed soon.',
+    trackingUrl: shopifyOrder.fulfillments?.[0]?.trackingInfo?.[0]?.url || null
+  };
 }
+
 
 function DeliveryStatusIcon() {
   return (
@@ -80,14 +92,46 @@ function DeliveryStatusIcon() {
 export default function OrderTracking() {
   const { id } = useParams()
   const [smsOn, setSmsOn] = useState(false)
-  const isDelivered = MOCK_ORDER.status === 'delivered'
+  const [orderData, setOrderData] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
   const { addToCart, openCart } = useStore()
-  const orderId = id ?? MOCK_ORDER.id
+  const orderId = id
+
+  useEffect(() => {
+    async function fetchOrder() {
+      if (!orderId) {
+        setLoading(false);
+        return;
+      }
+      try {
+        const res = await fetch(`/api/shopify/order?id=${orderId}`);
+        if (!res.ok) throw new Error('Order not found');
+        const data = await res.json();
+        setOrderData(mapShopifyOrderToMock(data));
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchOrder();
+  }, [orderId]);
+
+  if (loading) {
+    return <div className="min-h-screen bg-cream pt-[80px] flex items-center justify-center">Loading order...</div>;
+  }
+
+  if (error || !orderData) {
+    return <div className="min-h-screen bg-cream pt-[80px] flex items-center justify-center font-playfair text-xl">Order not found.</div>;
+  }
+
+  const isDelivered = orderData.status === 'delivered'
 
   const handleBuyAgain = () => {
     addToCart({
-      ...MOCK_ORDER.product,
-      images: [MOCK_ORDER.product.image],
+      ...orderData.product,
+      images: [orderData.product.image],
       qty: 1,
       category: 'Home',
       isNew: false,
@@ -139,10 +183,10 @@ export default function OrderTracking() {
             #{orderId}
           </motion.p>
           <p className="font-dm text-[13px] text-cream/50">
-            Estimated delivery: {MOCK_ORDER.estimatedDelivery}
+            Estimated delivery: {orderData.estimatedDelivery}
           </p>
           <p className="mt-1 font-dm text-[12px] text-cream/35">
-            Placed on {MOCK_ORDER.placedOn}
+            Placed on {orderData.placedOn}
           </p>
         </div>
       </section>
@@ -161,7 +205,7 @@ export default function OrderTracking() {
             <div className="mb-4 flex items-center gap-2">
               <MapPin size={16} className="text-caramel" />
               <p className="font-dm text-[13px] text-caramel">
-                {MOCK_ORDER.deliveryAddress}
+                {orderData.deliveryAddress}
               </p>
             </div>
             <DeliveryMap progress={isDelivered ? 1 : 0.7} />
@@ -173,8 +217,8 @@ export default function OrderTracking() {
         <div className="mx-auto max-w-screen-md">
           <RevealOnScroll>
             <ProgressTimeline
-              stages={MOCK_ORDER.stages}
-              currentStatus={MOCK_ORDER.status}
+              stages={orderData.stages}
+              currentStatus={orderData.status}
             />
           </RevealOnScroll>
         </div>
@@ -192,15 +236,19 @@ export default function OrderTracking() {
                       Out for delivery
                     </p>
                     <p className="font-dm text-[13px] font-light leading-[1.6] text-caramel">
-                      {MOCK_ORDER.currentUpdate}
+                      {orderData.currentUpdate}
                     </p>
                   </div>
-                  <button
-                    className="flex-shrink-0 font-dm text-[12px] text-mocha underline underline-offset-2 transition-colors duration-250 ease-smooth hover:text-espresso"
-                    type="button"
-                  >
-                    Track on Map
-                  </button>
+                  {orderData.trackingUrl && (
+                    <a
+                      href={orderData.trackingUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex-shrink-0 font-dm text-[12px] text-mocha underline underline-offset-2 transition-colors duration-250 ease-smooth hover:text-espresso"
+                    >
+                      Track on Courier
+                    </a>
+                  )}
                 </div>
 
                 <div className="mt-4 flex items-center justify-between border-t border-cappuccino/30 pt-4">
@@ -255,20 +303,20 @@ export default function OrderTracking() {
               <div className="flex items-center gap-4 rounded-[16px] border border-cappuccino/30 bg-cream-light p-4">
                 <div className="h-20 w-20 flex-shrink-0 overflow-hidden rounded-[12px] bg-cappuccino">
                   <SmartImage
-                    src={MOCK_ORDER.product.image}
-                    alt={`${MOCK_ORDER.product.name} reorder card at Little Essentials`}
+                    src={orderData.product.image}
+                    alt={`${orderData.product.name} reorder card at Little Essentials`}
                     className="h-full w-full"
                   />
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="mb-1 font-dm text-[10px] uppercase tracking-ultra text-caramel">
-                    {MOCK_ORDER.product.brand}
+                    {orderData.product.brand}
                   </p>
                   <p className="mb-2 line-clamp-2 font-playfair text-[14px] font-semibold text-espresso">
-                    {MOCK_ORDER.product.name}
+                    {orderData.product.name} {orderData.product.variantTitle ? `— ${orderData.product.variantTitle}` : ''}
                   </p>
                   <p className="font-dm text-[13px] font-medium text-espresso">
-                    ₹{MOCK_ORDER.product.price.toLocaleString('en-IN')}
+                    ₹{orderData.product.price.toLocaleString('en-IN')}
                   </p>
                 </div>
                 <button
@@ -292,20 +340,20 @@ export default function OrderTracking() {
               <div className="flex items-center gap-4 rounded-[16px] border border-cappuccino/30 bg-cream-light p-4">
                 <div className="h-20 w-20 flex-shrink-0 overflow-hidden rounded-[12px] bg-cappuccino">
                   <SmartImage
-                    src={MOCK_ORDER.product.image}
-                    alt={`${MOCK_ORDER.product.name} order tracking product at Little Essentials`}
+                    src={orderData.product.image}
+                    alt={`${orderData.product.name} order tracking product at Little Essentials`}
                     className="h-full w-full"
                   />
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="mb-1 font-dm text-[10px] uppercase tracking-ultra text-caramel">
-                    {MOCK_ORDER.product.brand}
+                    {orderData.product.brand}
                   </p>
                   <p className="mb-2 line-clamp-2 font-playfair text-[14px] font-semibold text-espresso">
-                    {MOCK_ORDER.product.name}
+                    {orderData.product.name} {orderData.product.variantTitle ? `— ${orderData.product.variantTitle}` : ''}
                   </p>
                   <p className="font-dm text-[13px] font-medium text-espresso">
-                    ₹{MOCK_ORDER.product.price.toLocaleString('en-IN')}
+                    ₹{orderData.product.price.toLocaleString('en-IN')}
                   </p>
                 </div>
                 <button

@@ -114,8 +114,17 @@ export default function ProductInfo({ product }) {
   const handleAddToCart = () => {
     if (product.isSoldOut) return
 
+    // Find the exact variant node matching the selected variant name (e.g., 'M')
+    const matchingNode =
+      product.variantNodes?.find((node) =>
+        node.selectedOptions?.some((opt) => opt.value === selectedVariant),
+      ) || product.variantNodes?.[0]
+
     addToCart({
       ...product,
+      id: matchingNode ? matchingNode.id : product.id,
+      price: matchingNode ? matchingNode.price : product.price,
+      image: matchingNode?.image || product.images[0],
       qty,
       selectedVariant,
       selectedVariantName: variantName,
