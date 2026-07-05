@@ -6,6 +6,9 @@ import dotenv from 'dotenv';
 import createOrderHandler from './api/create-order.js';
 import verifyPaymentHandler from './api/verify-payment.js';
 import createCodOrderHandler from './api/create-cod-order.js';
+import shopifyOrderHandler from './api/shopify/order.js';
+import adminLoginHandler from './api/admin/login.js';
+import adminOrdersHandler from './api/admin/orders.js';
 
 dotenv.config();
 
@@ -31,6 +34,9 @@ const expressToVercel = (handler) => {
 app.post('/api/create-order', expressToVercel(createOrderHandler));
 app.post('/api/verify-payment', expressToVercel(verifyPaymentHandler));
 app.post('/api/create-cod-order', expressToVercel(createCodOrderHandler));
+app.get('/api/shopify/order', expressToVercel(shopifyOrderHandler));
+app.post('/api/admin/login', expressToVercel(adminLoginHandler));
+app.get('/api/admin/orders', expressToVercel(adminOrdersHandler));
 
 // Health / diagnostics endpoint
 app.get('/api/health', (req, res) => {

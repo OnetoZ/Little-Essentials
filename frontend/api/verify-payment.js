@@ -1,5 +1,8 @@
 import crypto from 'crypto';
 import { getShopifyAccessToken } from './utils/shopifyToken.js';
+import { buildOrderLineItems } from './utils/orders.js';
+
+const ADMIN_API_VERSION = process.env.VITE_SHOPIFY_API_VERSION_ADMIN || '2025-07';
 
 export default async function handler(req, res) {
   // Set CORS headers
@@ -61,29 +64,11 @@ export default async function handler(req, res) {
     }
 
     let shopify_order_id = null;
+    let shopify_error = null;
 
     try {
-      // 1. Build GraphQL line items directly using GIDs
-      const lineItems = cartItems.map(item => {
-        let variantId = item.id;
-
-        // Fallback for ProductCard which might still add product ID instead of variant ID
-        if (!String(variantId).includes('gid://') && item.variantNodes && item.variantNodes.length > 0) {
-          variantId = item.variantNodes[0].id;
-        }
-
-        // Must ensure it is a valid gid:// string for ProductVariant
-        if (!String(variantId).includes('ProductVariant')) {
-          if (typeof variantId === 'number' || !isNaN(Number(variantId))) {
-            variantId = `gid://shopify/ProductVariant/${variantId}`;
-          }
-        }
-
-        return {
-          variantId: variantId,
-          quantity: item.qty || 1
-        };
-      });
+      // 1. Build GraphQL line items using tested variant-GID resolution.
+      const lineItems = buildOrderLineItems(cartItems);
 
       console.log('[Shopify] GraphQL Line items to create:', JSON.stringify(lineItems));
 
@@ -114,6 +99,12 @@ export default async function handler(req, res) {
             countryCode: "IN",
             phone: customerInfo.phone || ""
           }
+        },
+        // DECREMENT_OBEYING_POLICY reduces stock on purchase (respects
+        // each variant's "continue selling when out of stock" policy).
+        options: {
+          inventoryBehaviour: 'DECREMENT_OBEYING_POLICY',
+          sendReceipt: true
         }
       };
 
@@ -123,8 +114,8 @@ export default async function handler(req, res) {
 
       // 4. GraphQL Mutation
       const mutation = `
-        mutation orderCreate($order: OrderCreateOrderInput!) {
-          orderCreate(order: $order) {
+        mutation orderCreate($order: OrderCreateOrderInput!, $options: OrderCreateOptionsInput) {
+          orderCreate(order: $order, options: $options) {
             order {
               id
               name
@@ -137,8 +128,8 @@ export default async function handler(req, res) {
         }
       `;
 
-      // 5. Execute Request against Spring '26 GraphQL Admin API
-      const orderRes = await fetch(`https://${shopifyDomain}/admin/api/2024-01/graphql.json`, {
+      // 5. Execute Request against the GraphQL Admin API
+      const orderRes = await fetch(`https://${shopifyDomain}/admin/api/${ADMIN_API_VERSION}/graphql.json`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -154,25 +145,33 @@ export default async function handler(req, res) {
       
       if (orderDataResp.errors) {
         console.error('[Shopify] GraphQL Request Errors:', JSON.stringify(orderDataResp.errors, null, 2));
+        shopify_error = orderDataResp.errors.map((e) => e.message).join(', ');
       } else if (orderDataResp.data?.orderCreate?.userErrors?.length > 0) {
         console.error('[Shopify] GraphQL User Errors:', JSON.stringify(orderDataResp.data.orderCreate.userErrors, null, 2));
+        shopify_error = orderDataResp.data.orderCreate.userErrors.map((e) => e.message).join(', ');
       } else if (orderDataResp.data?.orderCreate?.order) {
-        // Successfully created! Extract the legacy numeric ID for frontend routing if needed
+        // Successfully created! Extract the legacy numeric ID for frontend routing.
         const fullGid = orderDataResp.data.orderCreate.order.id; // gid://shopify/Order/123456
         shopify_order_id = fullGid.split('/').pop();
         console.log('[Shopify] Successfully created order:', shopify_order_id);
       } else {
         console.error('[Shopify] Unknown GraphQL response:', JSON.stringify(orderDataResp, null, 2));
+        shopify_error = 'Unknown Shopify response';
       }
 
     } catch (shopifyErr) {
       console.error('[Shopify] Order Creation Error:', shopifyErr);
+      shopify_error = shopifyErr.message || 'Shopify order creation failed';
     }
 
-    return res.status(200).json({ 
-      success: true, 
+    // Payment is verified regardless, but flag order-creation failures so the
+    // frontend never routes to a non-existent tracking page.
+    return res.status(200).json({
+      success: true,
       message: 'Payment verified successfully',
-      shopify_order_id: shopify_order_id
+      order_created: Boolean(shopify_order_id),
+      shopify_order_id: shopify_order_id,
+      shopify_error: shopify_error
     });
 
   } catch (error) {
