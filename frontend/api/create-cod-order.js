@@ -1,3 +1,5 @@
+const ADMIN_API_VERSION = process.env.VITE_SHOPIFY_API_VERSION_ADMIN || '2025-07';
+
 export default async function handler(req, res) {
   // Set CORS headers
   res.setHeader('Access-Control-Allow-Credentials', 'true');
@@ -79,6 +81,8 @@ export default async function handler(req, res) {
         financial_status: 'pending',
         send_receipt: true,
         note: 'Cash on Delivery',
+        // Reduce stock on order placement (respects each variant's policy).
+        inventory_behaviour: 'decrement_obeying_policy',
         line_items,
         shipping_address: {
           first_name: customerInfo.firstName,
@@ -101,7 +105,7 @@ export default async function handler(req, res) {
     console.log('[COD] Sending order payload to Shopify:', JSON.stringify(orderPayload));
 
     // 4. Create order via Shopify Admin API — use secret directly as access token
-    const orderRes = await fetch(`https://${shopifyDomain}/admin/api/2024-01/orders.json`, {
+    const orderRes = await fetch(`https://${shopifyDomain}/admin/api/${ADMIN_API_VERSION}/orders.json`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

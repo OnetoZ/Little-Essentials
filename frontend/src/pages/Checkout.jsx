@@ -693,12 +693,19 @@ export default function Checkout() {
             }
 
             const verifyData = await verifyRes.json()
-            if (verifyData.success) {
-              // Clear cart on successful payment
+            if (verifyData.success && verifyData.shopify_order_id) {
+              // Payment verified AND Shopify order created — clear cart, track it.
               useStore.setState({ cartItems: [] })
-              
-              // Redirect to order tracking page
-              navigate(`/order/${verifyData.shopify_order_id || order_id}/track`)
+              navigate(`/order/${verifyData.shopify_order_id}/track`)
+            } else if (verifyData.success) {
+              // Payment captured but the Shopify order could not be created.
+              // Clear the cart but do NOT route to a non-existent tracking page.
+              useStore.setState({ cartItems: [] })
+              setPaymentError(
+                `Payment successful, but we couldn't finalise your order automatically` +
+                  (verifyData.shopify_error ? ` (${verifyData.shopify_error})` : '') +
+                  `. Please contact support with your payment ID ${razorpayResponse.razorpay_payment_id}.`,
+              )
             } else {
               throw new Error('Verification failed: payment is not marked as paid.')
             }

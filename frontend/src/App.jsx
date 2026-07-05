@@ -16,6 +16,8 @@ const Checkout = lazy(() => import('./pages/Checkout'))
 const InfoPage = lazy(() => import('./pages/InfoPage'))
 const OrderTracking = lazy(() => import('./pages/OrderTracking'))
 const Login = lazy(() => import('./pages/Login'))
+const AdminLogin = lazy(() => import('./pages/AdminLogin'))
+const AdminDashboard = lazy(() => import('./pages/AdminDashboard'))
 const NotFound = lazy(() => import('./pages/NotFound'))
 
 function RouteFallback() {
@@ -29,7 +31,8 @@ function RouteFallback() {
 
 function AppRoutes() {
   const location = useLocation()
-  const hideFooter = location.pathname === '/login'
+  const isAdmin = location.pathname.startsWith('/admin')
+  const hideChrome = location.pathname === '/login' || isAdmin
 
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
@@ -46,7 +49,7 @@ function AppRoutes() {
       >
         Skip to main content
       </a>
-      <Navbar />
+      {!hideChrome ? <Navbar /> : null}
       <Suspense fallback={<RouteFallback />}>
         <div id="main-content">
           <PageTransition>
@@ -68,12 +71,14 @@ function AppRoutes() {
               <Route path="/cookies" element={<InfoPage />} />
               <Route path="/order/:id/track" element={<OrderTracking />} />
               <Route path="/login" element={<Login />} />
+              <Route path="/admin/login" element={<AdminLogin />} />
+              <Route path="/admin" element={<AdminDashboard />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </PageTransition>
         </div>
       </Suspense>
-      {!hideFooter ? <Footer /> : null}
+      {!hideChrome ? <Footer /> : null}
     </>
   )
 }

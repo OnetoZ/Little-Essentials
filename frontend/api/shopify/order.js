@@ -1,5 +1,7 @@
 import { getShopifyAccessToken } from '../utils/shopifyToken.js';
 
+const ADMIN_API_VERSION = process.env.VITE_SHOPIFY_API_VERSION_ADMIN || '2025-07';
+
 export default async function handler(req, res) {
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -9,6 +11,12 @@ export default async function handler(req, res) {
 
   if (!id) {
     return res.status(400).json({ error: 'Missing order ID parameter' });
+  }
+
+  // Tracking ids are numeric Shopify order ids. Reject anything else early
+  // (e.g. a Razorpay order id) so we don't build an invalid Order GID.
+  if (!/^\d+$/.test(String(id))) {
+    return res.status(404).json({ error: 'Order not found' });
   }
 
   const shopifyDomain = process.env.VITE_SHOPIFY_STORE_DOMAIN;
@@ -77,7 +85,7 @@ export default async function handler(req, res) {
       }
     `;
 
-    const response = await fetch(`https://${shopifyDomain}/admin/api/2024-01/graphql.json`, {
+    const response = await fetch(`https://${shopifyDomain}/admin/api/${ADMIN_API_VERSION}/graphql.json`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
