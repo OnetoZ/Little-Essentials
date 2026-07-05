@@ -13,7 +13,6 @@ import {
 import FloatInput from '../components/UI/FloatInput'
 import SmartImage from '../components/UI/SmartImage'
 import SEO from '../components/SEO/SEO'
-import { useOnce } from '../hooks/useOnce'
 import { useShopifyAuth } from '../hooks/useShopifyAuth'
 import useStore from '../store/useStore'
 import { sanitizeText } from '../utils/sanitize'

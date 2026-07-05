@@ -1,5 +1,6 @@
 import crypto from 'crypto';
 import { getShopifyAccessToken } from './utils/shopifyToken.js';
+import { buildOrderLineItems } from './utils/orders.js';
 
 const ADMIN_API_VERSION = process.env.VITE_SHOPIFY_API_VERSION_ADMIN || '2025-07';
 
@@ -66,27 +67,8 @@ export default async function handler(req, res) {
     let shopify_error = null;
 
     try {
-      // 1. Build GraphQL line items directly using GIDs
-      const lineItems = cartItems.map(item => {
-        let variantId = item.id;
-
-        // Fallback for ProductCard which might still add product ID instead of variant ID
-        if (!String(variantId).includes('gid://') && item.variantNodes && item.variantNodes.length > 0) {
-          variantId = item.variantNodes[0].id;
-        }
-
-        // Must ensure it is a valid gid:// string for ProductVariant
-        if (!String(variantId).includes('ProductVariant')) {
-          if (typeof variantId === 'number' || !isNaN(Number(variantId))) {
-            variantId = `gid://shopify/ProductVariant/${variantId}`;
-          }
-        }
-
-        return {
-          variantId: variantId,
-          quantity: item.qty || 1
-        };
-      });
+      // 1. Build GraphQL line items using tested variant-GID resolution.
+      const lineItems = buildOrderLineItems(cartItems);
 
       console.log('[Shopify] GraphQL Line items to create:', JSON.stringify(lineItems));
 

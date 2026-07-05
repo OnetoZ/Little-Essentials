@@ -1,5 +1,6 @@
 import { getShopifyAccessToken } from '../utils/shopifyToken.js';
 import { requireAdmin } from '../utils/adminAuth.js';
+import { normalizeAdminOrder } from '../utils/orders.js';
 
 const ADMIN_API_VERSION = process.env.VITE_SHOPIFY_API_VERSION_ADMIN || '2025-07';
 
@@ -88,29 +89,7 @@ export default async function handler(req, res) {
     }
 
     const conn = data.data?.orders;
-    const orders = (conn?.edges || []).map(({ node }) => ({
-      id: node.id.split('/').pop(),
-      name: node.name,
-      createdAt: node.createdAt,
-      financialStatus: node.displayFinancialStatus,
-      fulfillmentStatus: node.displayFulfillmentStatus,
-      note: node.note || '',
-      total: parseFloat(node.totalPriceSet?.shopMoney?.amount || 0),
-      currency: node.totalPriceSet?.shopMoney?.currencyCode || 'INR',
-      customer: {
-        name: node.shippingAddress?.name || '',
-        email: node.email || '',
-        phone: node.shippingAddress?.phone || '',
-      },
-      shippingAddress: node.shippingAddress || null,
-      items: (node.lineItems?.edges || []).map(({ node: li }) => ({
-        title: li.title,
-        quantity: li.quantity,
-        variantTitle: li.variantTitle,
-        price: parseFloat(li.originalTotalSet?.shopMoney?.amount || 0),
-        image: li.image?.url || null,
-      })),
-    }));
+    const orders = (conn?.edges || []).map(({ node }) => normalizeAdminOrder(node));
 
     return res.status(200).json({
       orders,

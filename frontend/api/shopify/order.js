@@ -1,4 +1,5 @@
 import { getShopifyAccessToken } from '../utils/shopifyToken.js';
+import { isNumericOrderId } from '../utils/orders.js';
 
 const ADMIN_API_VERSION = process.env.VITE_SHOPIFY_API_VERSION_ADMIN || '2025-07';
 
@@ -15,7 +16,7 @@ export default async function handler(req, res) {
 
   // Tracking ids are numeric Shopify order ids. Reject anything else early
   // (e.g. a Razorpay order id) so we don't build an invalid Order GID.
-  if (!/^\d+$/.test(String(id))) {
+  if (!isNumericOrderId(id)) {
     return res.status(404).json({ error: 'Order not found' });
   }
 
