@@ -15,6 +15,7 @@ import {
   ShoppingBag,
   TrendingUp,
   Truck,
+  Undo2,
   User,
 } from 'lucide-react'
 import { useAdminAuth, getAdminToken } from '../hooks/useAdminAuth'
@@ -64,10 +65,15 @@ function StatCard({ icon: Icon, label, value, hint, accent }) {
   )
 }
 
-function OrderCard({ order }) {
+function OrderCard({ order, onShip, onRevoke }) {
   const [open, setOpen] = useState(false)
+  const [shipping, setShipping] = useState(false)
+  const [revoking, setRevoking] = useState(false)
   const addr = order.shippingAddress
   const itemCount = order.items.reduce((s, it) => s + (it.quantity || 0), 0)
+
+  const isShipped = String(order.fulfillmentStatus).toLowerCase() === 'fulfilled' || (order.tags && order.tags.includes('shipped'))
+  const displayFulfillment = isShipped ? 'FULFILLED' : order.fulfillmentStatus
 
   return (
     <div className="overflow-hidden rounded-[14px] border border-cappuccino/30 bg-cream-light transition-shadow hover:shadow-[0_8px_30px_rgba(59,42,34,0.08)]">
@@ -84,7 +90,7 @@ function OrderCard({ order }) {
           <div className="flex flex-wrap items-center gap-2">
             <span className="font-playfair text-[16px] font-bold text-espresso">{order.name}</span>
             <Badge label={order.financialStatus} tone={financialTone(order.financialStatus)} />
-            <Badge label={order.fulfillmentStatus} tone={fulfillmentTone(order.fulfillmentStatus)} />
+            <Badge label={displayFulfillment} tone={fulfillmentTone(displayFulfillment)} />
           </div>
           <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 font-dm text-[12px] text-caramel">
             <span className="font-medium text-espresso/80">{order.customer?.name || 'Guest'}</span>
@@ -173,6 +179,38 @@ function OrderCard({ order }) {
                 <p className="font-playfair text-[20px] font-bold text-espresso">{money(order.total)}</p>
               </div>
             </div>
+
+            <div className="mt-4 flex flex-wrap gap-2 border-t border-cappuccino/30 pt-4">
+              {!isShipped && (
+                <button
+                  onClick={async () => {
+                    setShipping(true)
+                    await onShip(order.id)
+                    setShipping(false)
+                  }}
+                  disabled={shipping || revoking}
+                  className="flex flex-1 items-center justify-center gap-2 rounded-[8px] bg-espresso px-4 py-2.5 font-dm text-[13px] font-semibold text-cream transition-all hover:bg-mocha disabled:opacity-70"
+                >
+                  <Truck size={15} className={shipping ? 'animate-pulse' : ''} />
+                  {shipping ? 'Marking as Shipped...' : 'Mark as Shipped'}
+                </button>
+              )}
+              {isShipped && (
+                <button
+                  onClick={async () => {
+                    if (!window.confirm('Revoke shipment for this order? This will mark it as unfulfilled.')) return
+                    setRevoking(true)
+                    await onRevoke(order.id)
+                    setRevoking(false)
+                  }}
+                  disabled={revoking || shipping}
+                  className="flex flex-1 items-center justify-center gap-2 rounded-[8px] border border-rose-300 bg-rose-50 px-4 py-2.5 font-dm text-[13px] font-semibold text-rose-700 transition-all hover:bg-rose-100 disabled:opacity-70"
+                >
+                  <Undo2 size={15} className={revoking ? 'animate-spin' : ''} />
+                  {revoking ? 'Revoking...' : 'Revoke Shipment'}
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -184,7 +222,6 @@ const FILTERS = [
   { key: 'all', label: 'All' },
   { key: 'paid', label: 'Paid' },
   { key: 'pending', label: 'Pending' },
-  { key: 'unfulfilled', label: 'To Ship' },
   { key: 'fulfilled', label: 'Shipped' },
 ]
 
@@ -223,6 +260,60 @@ export default function AdminDashboard() {
     }
   }, [doLogout])
 
+  const handleShipOrder = async (orderId) => {
+    try {
+      const res = await fetch('/api/admin/ship-order', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${getAdminToken()}`,
+        },
+        body: JSON.stringify({ orderId }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to ship order');
+
+      // Update local state immediately
+      setOrders((current) =>
+        current.map((o) =>
+          o.id === orderId ? { ...o, fulfillmentStatus: 'FULFILLED', tags: [...(o.tags || []), 'shipped'] } : o
+        )
+      );
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+
+  const handleRevokeOrder = async (orderId) => {
+    try {
+      const res = await fetch('/api/admin/unship-order', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${getAdminToken()}`,
+        },
+        body: JSON.stringify({ orderId }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to revoke shipment');
+
+      // Update local state: mark as unfulfilled and remove the shipped tag
+      setOrders((current) =>
+        current.map((o) =>
+          o.id === orderId
+            ? {
+                ...o,
+                fulfillmentStatus: 'UNFULFILLED',
+                tags: (o.tags || []).filter((t) => t !== 'shipped'),
+              }
+            : o
+        )
+      );
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+
   useEffect(() => {
     if (!isAuthenticated) {
       navigate('/admin/login', { replace: true })
@@ -234,7 +325,10 @@ export default function AdminDashboard() {
   const stats = useMemo(() => {
     const paid = orders.filter((o) => String(o.financialStatus).toLowerCase().includes('paid'))
     const revenue = paid.reduce((s, o) => s + o.total, 0)
-    const unfulfilled = orders.filter((o) => String(o.fulfillmentStatus).toLowerCase() !== 'fulfilled').length
+    const unfulfilled = orders.filter((o) => {
+      const isShipped = String(o.fulfillmentStatus).toLowerCase() === 'fulfilled' || (o.tags && o.tags.includes('shipped'))
+      return !isShipped
+    }).length
     const avg = paid.length ? revenue / paid.length : 0
     return { total: orders.length, revenue, unfulfilled, avg, paidCount: paid.length }
   }, [orders])
@@ -242,10 +336,10 @@ export default function AdminDashboard() {
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
     return orders.filter((o) => {
+      const isShipped = String(o.fulfillmentStatus).toLowerCase() === 'fulfilled' || (o.tags && o.tags.includes('shipped'))
       if (filter === 'paid' && !String(o.financialStatus).toLowerCase().includes('paid')) return false
       if (filter === 'pending' && !String(o.financialStatus).toLowerCase().includes('pending')) return false
-      if (filter === 'unfulfilled' && String(o.fulfillmentStatus).toLowerCase() === 'fulfilled') return false
-      if (filter === 'fulfilled' && String(o.fulfillmentStatus).toLowerCase() !== 'fulfilled') return false
+      if (filter === 'fulfilled' && !isShipped) return false
       if (!q) return true
       const hay = [o.name, o.customer?.name, o.customer?.email, o.shippingAddress?.city, ...o.items.map((i) => i.title)]
         .join(' ')
@@ -359,7 +453,7 @@ export default function AdminDashboard() {
             </p>
             <div className="space-y-3">
               {filtered.map((o) => (
-                <OrderCard key={o.id} order={o} />
+                <OrderCard key={o.id} order={o} onShip={handleShipOrder} onRevoke={handleRevokeOrder} />
               ))}
             </div>
           </>

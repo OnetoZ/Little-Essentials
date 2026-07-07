@@ -9,6 +9,8 @@ import createCodOrderHandler from './api/create-cod-order.js';
 import shopifyOrderHandler from './api/shopify/order.js';
 import adminLoginHandler from './api/admin/login.js';
 import adminOrdersHandler from './api/admin/orders.js';
+import adminShipOrderHandler from './api/admin/ship-order.js';
+import adminUnshipOrderHandler from './api/admin/unship-order.js';
 
 dotenv.config();
 
@@ -37,6 +39,8 @@ app.post('/api/create-cod-order', expressToVercel(createCodOrderHandler));
 app.get('/api/shopify/order', expressToVercel(shopifyOrderHandler));
 app.post('/api/admin/login', expressToVercel(adminLoginHandler));
 app.get('/api/admin/orders', expressToVercel(adminOrdersHandler));
+app.post('/api/admin/ship-order', expressToVercel(adminShipOrderHandler));
+app.post('/api/admin/unship-order', expressToVercel(adminUnshipOrderHandler));
 
 // Health / diagnostics endpoint
 app.get('/api/health', (req, res) => {

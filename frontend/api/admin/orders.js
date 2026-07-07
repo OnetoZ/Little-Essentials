@@ -17,6 +17,7 @@ const ORDERS_QUERY = `
           displayFulfillmentStatus
           note
           email
+          tags
           totalPriceSet { shopMoney { amount currencyCode } }
           shippingAddress {
             name address1 address2 city province zip country phone

@@ -6,19 +6,39 @@ import FloatInput from '../components/UI/FloatInput'
 import SmartImage from '../components/UI/SmartImage'
 import SEO from '../components/SEO/SEO'
 import { sanitizeText } from '../utils/sanitize'
-import { useShopifyProducts } from '../hooks/useShopify'
+import { useShopifyProducts, useShopifyProduct } from '../hooks/useShopify'
+import ProductCard from '../components/ProductCard/ProductCard'
 import { useShopifyAuth } from '../hooks/useShopifyAuth'
+import { useAdminAuth } from '../hooks/useAdminAuth'
 import { useNavigate } from 'react-router-dom'
 import useStore from '../store/useStore'
 
 const HERO_IMAGE =
   'https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?w=1300&q=90'
 
+function WishlistProductCard({ handle }) {
+  const { product, loading } = useShopifyProduct(handle)
+
+  if (loading) {
+    return (
+      <div className="animate-pulse rounded-xl border border-cappuccino/20 p-4 bg-white/80 flex flex-col aspect-[4/5] justify-between">
+        <div className="bg-cappuccino/20 rounded-[8px] flex-1 w-full mb-3" />
+        <div className="h-4 bg-cappuccino/20 rounded w-3/4 mb-1" />
+        <div className="h-3 bg-cappuccino/20 rounded w-1/2" />
+      </div>
+    )
+  }
+
+  if (!product) return null
+
+  return <ProductCard product={product} />
+}
 
 export default function Login() {
   const navigate = useNavigate()
   const { products } = useShopifyProducts({ first: 12 })
   const { user, isAuthenticated, login, register, logout, recoverPassword, fetchOrders, fetchProfile, loading, error: authError } = useShopifyAuth()
+  const { login: adminLogin } = useAdminAuth()
 
   const [tab, setTab] = useState('login')
   const [dashboardTab, setDashboardTab] = useState('overview')
@@ -114,6 +134,13 @@ export default function Login() {
     try {
       const submitEmail = form.email.trim()
       if (tab === 'login') {
+        if (submitEmail.toLowerCase() === 'littleessentialsofficial@gmail.com') {
+          const isAdmin = await adminLogin(submitEmail, form.password)
+          if (isAdmin) {
+            navigate('/admin')
+            return
+          }
+        }
         await login(submitEmail, form.password)
         navigate('/')
       } else if (tab === 'register') {
@@ -257,7 +284,6 @@ export default function Login() {
                   {[
                     { id: 'overview', label: 'Dashboard', icon: Sparkles },
                     { id: 'orders', label: 'Order History', icon: ShoppingBag },
-                    { id: 'track', label: 'Track Your Order', icon: Truck },
                     { id: 'addresses', label: 'Saved Addresses', icon: MapPin },
                     { id: 'wishlist', label: 'Your Wishlist', icon: Heart },
                   ].map((t) => (
@@ -544,46 +570,6 @@ export default function Login() {
                       </motion.div>
                     )}
 
-                    {dashboardTab === 'track' && (
-                      <motion.div
-                        key="track"
-                        initial={{ opacity: 0, x: 20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: -20 }}
-                        className="space-y-6"
-                      >
-                        <div className="rounded-2xl border border-cappuccino/30 bg-white/50 p-6 shadow-sm">
-                          <h3 className="mb-2 font-playfair text-xl font-bold text-espresso">Track Your Order</h3>
-                          <p className="mb-6 font-dm text-sm text-mocha">Enter your Order ID (e.g. LE-2025-08847) to track shipping progress and delivery status in real-time.</p>
-                          
-                          <div className="max-w-md">
-                            <form onSubmit={(e) => {
-                              e.preventDefault()
-                              const orderId = e.target.orderId.value.trim()
-                              if (orderId) {
-                                navigate(`/order/${orderId}/track`)
-                              }
-                            }} className="flex gap-3">
-                              <input
-                                type="text"
-                                name="orderId"
-                                placeholder="Order ID (LE-XXXXX)"
-                                defaultValue="LE-2025-08847"
-                                className="h-11 flex-1 rounded-[8px] border border-cappuccino/40 bg-white pl-4 font-dm text-sm text-espresso outline-none transition-colors focus:border-caramel"
-                                required
-                              />
-                              <button
-                                type="submit"
-                                className="inline-flex h-11 items-center justify-center rounded-[8px] bg-espresso px-6 font-dm text-sm font-semibold text-cream transition-colors hover:bg-mocha"
-                              >
-                                Track Status
-                              </button>
-                            </form>
-                          </div>
-                        </div>
-                      </motion.div>
-                    )}
-
                     {dashboardTab === 'wishlist' && (
                       <motion.div
                         key="wishlist"
@@ -596,14 +582,9 @@ export default function Login() {
                           <div className="rounded-2xl border border-cappuccino/30 bg-white/50 p-6 shadow-sm">
                             <h3 className="mb-6 font-playfair text-xl font-bold text-espresso">Your Wishlist ({wishlist.length})</h3>
                             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                              {/* Display simple cards for wishlisted items. In a full implementation, we would query the Storefront API for these specific IDs to show full product details. */}
+                              {/* Display interactive product cards for wishlisted items. */}
                               {wishlist.map(id => (
-                                <div key={id} className="rounded-xl border border-cappuccino/20 p-4 bg-white/80">
-                                  <p className="font-dm text-[11px] font-medium text-caramel mb-1 break-all truncate">ID: {id.split('/').pop()}</p>
-                                  <Link to={`/product/${id}`} className="font-dm text-sm font-bold text-espresso hover:text-caramel transition-colors">
-                                    View Product →
-                                  </Link>
-                                </div>
+                                <WishlistProductCard key={id} handle={id} />
                               ))}
                             </div>
                           </div>

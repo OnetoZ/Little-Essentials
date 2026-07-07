@@ -58,6 +58,7 @@ export function normalizeAdminOrder(node) {
     financialStatus: node.displayFinancialStatus,
     fulfillmentStatus: node.displayFulfillmentStatus,
     note: node.note || '',
+    tags: node.tags || [],
     total: parseFloat(node.totalPriceSet?.shopMoney?.amount || 0),
     currency: node.totalPriceSet?.shopMoney?.currencyCode || 'INR',
     customer: {
