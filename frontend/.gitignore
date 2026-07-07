@@ -25,3 +25,7 @@ dist-ssr
 *.sw?
 
 coverage
+
+# Local test scripts (may contain tokens)
+test-shopify.cjs
+scratch/
