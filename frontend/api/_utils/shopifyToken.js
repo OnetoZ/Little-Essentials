@@ -34,7 +34,7 @@ export function getShopifyAccessToken() {
   if (!token) {
     throw new Error(
       '[Shopify] SHOPIFY_ADMIN_TOKEN is not set. ' +
-      'See instructions in api/utils/shopifyToken.js to complete the one-time OAuth flow.'
+      'See instructions in api/_utils/shopifyToken.js to complete the one-time OAuth flow.'
     );
   }
   return token;

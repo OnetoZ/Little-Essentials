@@ -1,6 +1,6 @@
 import crypto from 'crypto';
-import { getShopifyAccessToken } from './utils/shopifyToken.js';
-import { buildOrderLineItems } from './utils/orders.js';
+import { getShopifyAccessToken } from './_utils/shopifyToken.js';
+import { buildOrderLineItems } from './_utils/orders.js';
 
 const ADMIN_API_VERSION = process.env.VITE_SHOPIFY_API_VERSION_ADMIN || '2025-07';
 

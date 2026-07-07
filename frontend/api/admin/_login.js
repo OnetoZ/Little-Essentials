@@ -1,5 +1,5 @@
 import crypto from 'crypto';
-import { createSessionToken } from '../utils/adminAuth.js';
+import { createSessionToken } from '../_utils/adminAuth.js';
 
 function safeEqual(a, b) {
   const ab = Buffer.from(String(a));
