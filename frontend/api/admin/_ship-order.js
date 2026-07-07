@@ -1,5 +1,5 @@
-import { getShopifyAccessToken } from '../utils/shopifyToken.js';
-import { requireAdmin } from '../utils/adminAuth.js';
+import { getShopifyAccessToken } from '../_utils/shopifyToken.js';
+import { requireAdmin } from '../_utils/adminAuth.js';
 
 const ADMIN_API_VERSION = process.env.VITE_SHOPIFY_API_VERSION_ADMIN || '2025-07';
 

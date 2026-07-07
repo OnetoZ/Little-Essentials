@@ -29,10 +29,13 @@ function RouteFallback() {
 }
 
 
+import { useShopifyAuth } from './hooks/useShopifyAuth'
+
 function AppRoutes() {
   const location = useLocation()
+  const { isAuthenticated } = useShopifyAuth()
   const isAdmin = location.pathname.startsWith('/admin')
-  const hideChrome = location.pathname === '/login' || isAdmin
+  const hideChrome = (location.pathname === '/login' && !isAuthenticated) || isAdmin
 
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: 'instant' })

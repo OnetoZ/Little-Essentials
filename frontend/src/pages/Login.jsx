@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
-import { ArrowRight, BadgeCheck, Gem, Heart, LockKeyhole, LogOut, MapPin, ShoppingBag, Sparkles, Truck } from 'lucide-react'
+import { ArrowRight, BadgeCheck, Gem, Heart, LockKeyhole, LogOut, MapPin, ShoppingBag, Sparkles, Truck, ChevronDown } from 'lucide-react'
 import FloatInput from '../components/UI/FloatInput'
 import SmartImage from '../components/UI/SmartImage'
 import SEO from '../components/SEO/SEO'
@@ -42,6 +42,7 @@ export default function Login() {
 
   const [tab, setTab] = useState('login')
   const [dashboardTab, setDashboardTab] = useState('overview')
+  const [mobileDropdownOpen, setMobileDropdownOpen] = useState(false)
   const [orders, setOrders] = useState([])
   const [ordersLoading, setOrdersLoading] = useState(false)
   const [form, setForm] = useState({ name: '', email: '', password: '' })
@@ -280,28 +281,94 @@ export default function Login() {
             {isAuthenticated ? (
               <div className="grid h-full gap-8 lg:grid-cols-[240px_1fr]">
                 {/* Sidebar Navigation */}
-                <div className="flex flex-col h-full min-h-[400px] gap-2 border-r border-cappuccino/10 pr-6">
-                  {[
-                    { id: 'overview', label: 'Dashboard', icon: Sparkles },
-                    { id: 'orders', label: 'Order History', icon: ShoppingBag },
-                    { id: 'addresses', label: 'Saved Addresses', icon: MapPin },
-                    { id: 'wishlist', label: 'Your Wishlist', icon: Heart },
-                  ].map((t) => (
+                <div className="flex flex-col lg:h-full lg:min-h-[400px] gap-2 lg:border-r lg:border-cappuccino/10 lg:pr-6">
+                  {/* Mobile Dropdown */}
+                  <div className="lg:hidden mb-4 relative">
                     <button
-                      key={t.id}
-                      onClick={() => setDashboardTab(t.id)}
-                      className={`flex items-center gap-3 rounded-xl px-4 py-3 font-dm text-[14px] font-medium transition-all ${
-                        dashboardTab === t.id
-                          ? 'bg-espresso text-cream'
-                          : 'text-mocha hover:bg-cream'
-                      }`}
+                      onClick={() => setMobileDropdownOpen(!mobileDropdownOpen)}
+                      className="flex w-full items-center justify-between rounded-xl border border-cappuccino/30 bg-cream/50 px-4 py-3.5 font-dm text-[14px] font-medium text-espresso outline-none focus:border-caramel/50"
                     >
-                      <t.icon size={16} />
-                      {t.label}
+                      <span className="flex items-center gap-3">
+                        {(() => {
+                          const activeTab = [
+                            { id: 'overview', label: 'Dashboard', icon: Sparkles },
+                            { id: 'orders', label: 'Order History', icon: ShoppingBag },
+                            { id: 'addresses', label: 'Saved Addresses', icon: MapPin },
+                            { id: 'wishlist', label: 'Your Wishlist', icon: Heart },
+                          ].find(t => t.id === dashboardTab)
+                          return activeTab ? (
+                            <>
+                              <activeTab.icon size={16} />
+                              {activeTab.label}
+                            </>
+                          ) : 'Dashboard'
+                        })()}
+                      </span>
+                      <ChevronDown
+                        size={16}
+                        className={`transition-transform duration-300 ${mobileDropdownOpen ? 'rotate-180' : ''}`}
+                      />
                     </button>
-                  ))}
+
+                    <AnimatePresence>
+                      {mobileDropdownOpen && (
+                        <motion.div
+                          initial={{ opacity: 0, y: -10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -10 }}
+                          className="absolute left-0 right-0 top-[calc(100%+8px)] z-20 flex flex-col gap-1 rounded-xl border border-cappuccino/30 bg-cream-light p-2 shadow-lg"
+                        >
+                          {[
+                            { id: 'overview', label: 'Dashboard', icon: Sparkles },
+                            { id: 'orders', label: 'Order History', icon: ShoppingBag },
+                            { id: 'addresses', label: 'Saved Addresses', icon: MapPin },
+                            { id: 'wishlist', label: 'Your Wishlist', icon: Heart },
+                          ].map((t) => (
+                            <button
+                              key={t.id}
+                              onClick={() => {
+                                setDashboardTab(t.id)
+                                setMobileDropdownOpen(false)
+                              }}
+                              className={`flex items-center gap-3 rounded-lg px-3 py-3 font-dm text-[14px] font-medium transition-all ${
+                                dashboardTab === t.id
+                                  ? 'bg-espresso text-cream'
+                                  : 'text-mocha hover:bg-cream'
+                              }`}
+                            >
+                              <t.icon size={16} />
+                              {t.label}
+                            </button>
+                          ))}
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+
+                  {/* Desktop Buttons */}
+                  <div className="hidden lg:flex flex-col gap-2 flex-1">
+                    {[
+                      { id: 'overview', label: 'Dashboard', icon: Sparkles },
+                      { id: 'orders', label: 'Order History', icon: ShoppingBag },
+                      { id: 'addresses', label: 'Saved Addresses', icon: MapPin },
+                      { id: 'wishlist', label: 'Your Wishlist', icon: Heart },
+                    ].map((t) => (
+                      <button
+                        key={t.id}
+                        onClick={() => setDashboardTab(t.id)}
+                        className={`flex items-center gap-3 rounded-xl px-4 py-3 font-dm text-[14px] font-medium transition-all ${
+                          dashboardTab === t.id
+                            ? 'bg-espresso text-cream'
+                            : 'text-mocha hover:bg-cream'
+                        }`}
+                      >
+                        <t.icon size={16} />
+                        {t.label}
+                      </button>
+                    ))}
+                  </div>
                   
-                  <div className="mt-auto">
+                  <div className="mt-auto hidden lg:block">
                     <div className="my-2 border-t border-cappuccino/10 pt-2" />
                     <button
                       onClick={logout}
@@ -600,6 +667,17 @@ export default function Login() {
                       </motion.div>
                     )}
                   </AnimatePresence>
+                </div>
+                
+                {/* Mobile Sign Out */}
+                <div className="lg:hidden mt-4">
+                  <button
+                    onClick={logout}
+                    className="flex w-full items-center justify-center gap-3 rounded-xl border border-red-500/20 bg-red-50/50 px-4 py-3 font-dm text-[14px] font-semibold text-red-500 transition-all hover:bg-red-100/50"
+                  >
+                    <LogOut size={16} />
+                    Sign Out
+                  </button>
                 </div>
               </div>
             ) : (

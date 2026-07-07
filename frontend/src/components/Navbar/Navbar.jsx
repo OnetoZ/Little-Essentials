@@ -284,7 +284,7 @@ export default function Navbar() {
               aria-label="Mobile navigation"
               className="flex flex-1 flex-col items-center justify-center gap-8"
             >
-              {NAV_LINKS.map((link, index) => (
+              {[...NAV_LINKS, { label: isAuthenticated ? 'Dashboard' : 'Account', path: '/login' }].map((link, index) => (
                 <motion.div
                   key={link.label}
                   initial={{ opacity: 0, y: 24 }}
@@ -299,6 +299,7 @@ export default function Navbar() {
                   <Link
                     to={link.path}
                     className="font-playfair text-4xl text-cream transition-colors duration-300 ease-premium hover:text-caramel"
+                    onClick={closeMobileMenu}
                   >
                     {link.label}
                   </Link>

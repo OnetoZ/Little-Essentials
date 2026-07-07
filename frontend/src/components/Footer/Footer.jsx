@@ -168,7 +168,7 @@ export default function Footer() {
             </ul>
           </div>
 
-          <div>
+          <div className="hidden sm:block">
             <p className="mb-2 font-dm text-[11px] font-medium uppercase tracking-ultra text-caramel">
               Stay in the Edit
             </p>
