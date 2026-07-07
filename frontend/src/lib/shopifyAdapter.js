@@ -17,6 +17,7 @@ export function extractGid(gid) {
   return parts[parts.length - 1]
 }
 
+
 /**
  * Normalize a Shopify product node into the format frontend components expect.
  *
@@ -159,6 +160,7 @@ export function normalizeProductEdges(edges) {
 /**
  * Normalize a Shopify collection node.
  */
+
 export function normalizeCollection(shopifyCollection) {
   if (!shopifyCollection) return null
 

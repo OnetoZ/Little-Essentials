@@ -13,14 +13,17 @@ export default async function handler(req, res) {
     'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'
   );
 
+
   if (req.method === 'OPTIONS') {
     res.status(200).end();
     return;
   }
 
+
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
+
 
   // Handle environment setup issues
   if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
@@ -35,6 +38,7 @@ export default async function handler(req, res) {
     });
   }
 
+  
   try {
     const { amount, currency, receipt } = req.body || {};
 
