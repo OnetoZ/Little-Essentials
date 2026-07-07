@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
-import { Heart, MapPin, Menu, Search, ShoppingBag, Sparkles, User, X } from 'lucide-react'
+import { Heart, Menu, Search, ShoppingBag, User, X } from 'lucide-react'
 import CartDrawer from '../Cart/CartDrawer'
 import useStore from '../../store/useStore'
 import { useShopifyCollections } from '../../hooks/useShopify'
 import { useShopifyAuth } from '../../hooks/useShopifyAuth'
+import { useAdminAuth } from '../../hooks/useAdminAuth'
 
 const NAV_LINKS = [
   { label: 'Home', path: '/' },
@@ -15,9 +16,9 @@ const NAV_LINKS = [
 ]
 
 export default function Navbar() {
-  const { user, isAuthenticated, logout } = useShopifyAuth()
+  const { isAuthenticated: isCustomer } = useShopifyAuth()
+  const { isAuthenticated: isAdmin } = useAdminAuth()
   const [previewOpen, setPreviewOpen] = useState(false)
-  const [profileOpen, setProfileOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const location = useLocation()
   const { categories } = useShopifyCollections()
@@ -29,6 +30,8 @@ export default function Navbar() {
     toggleMobileMenu,
   } = useStore()
   const count = useStore((state) => state.cartCount())
+
+  const accountLink = isAdmin ? '/admin' : isCustomer ? '/dashboard' : '/login'
 
   useEffect(() => {
     const handleScroll = () => {
@@ -203,7 +206,7 @@ export default function Navbar() {
             </AnimatePresence>
           </button>
           <Link
-            to="/login"
+            to={accountLink}
             className={`flex h-9 w-9 items-center justify-center rounded-full ${iconColor} transition-all duration-300 ease-premium hover:scale-105 hover:bg-cappuccino/22`}
             aria-label="Account"
           >
@@ -284,7 +287,7 @@ export default function Navbar() {
               aria-label="Mobile navigation"
               className="flex flex-1 flex-col items-center justify-center gap-8"
             >
-              {[...NAV_LINKS, { label: isAuthenticated ? 'Dashboard' : 'Account', path: '/login' }].map((link, index) => (
+              {[...NAV_LINKS, { label: isAdmin ? 'Admin' : isCustomer ? 'Dashboard' : 'Account', path: accountLink }].map((link, index) => (
                 <motion.div
                   key={link.label}
                   initial={{ opacity: 0, y: 24 }}

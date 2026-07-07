@@ -50,6 +50,28 @@ export function useAdminAuth() {
     setEmail(null)
   }, [])
 
+  const exchangeCustomerToken = useCallback(async (customerAccessToken) => {
+    try {
+      const res = await fetch('/api/admin/exchange-token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ customerAccessToken })
+      })
+      const data = await res.json()
+      if (res.ok && data.success && data.token) {
+        setToken(data.token)
+        setEmail(data.email)
+        localStorage.setItem(TOKEN_KEY, data.token)
+        localStorage.setItem(EMAIL_KEY, data.email)
+        return true
+      }
+      return false
+    } catch (err) {
+      console.error('Failed to exchange token:', err)
+      return false
+    }
+  }, [])
+
   return {
     token,
     email,
@@ -58,5 +80,6 @@ export function useAdminAuth() {
     error,
     login,
     logout,
+    exchangeCustomerToken,
   }
 }

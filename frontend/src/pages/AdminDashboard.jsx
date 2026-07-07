@@ -19,6 +19,7 @@ import {
   User,
 } from 'lucide-react'
 import { useAdminAuth, getAdminToken } from '../hooks/useAdminAuth'
+import { useShopifyAuth } from '../hooks/useShopifyAuth'
 import SEO from '../components/SEO/SEO'
 
 const money = (n) => `₹${Number(n || 0).toLocaleString('en-IN', { maximumFractionDigits: 2 })}`
@@ -228,6 +229,7 @@ const FILTERS = [
 export default function AdminDashboard() {
   const navigate = useNavigate()
   const { email, logout, isAuthenticated } = useAdminAuth()
+  const { logout: shopifyLogout } = useShopifyAuth()
   const [orders, setOrders] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -236,8 +238,9 @@ export default function AdminDashboard() {
 
   const doLogout = useCallback(() => {
     logout()
-    navigate('/admin/login', { replace: true })
-  }, [logout, navigate])
+    shopifyLogout()
+    navigate('/login', { replace: true })
+  }, [logout, shopifyLogout, navigate])
 
   const fetchOrders = useCallback(async () => {
     setLoading(true)
@@ -316,7 +319,7 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     if (!isAuthenticated) {
-      navigate('/admin/login', { replace: true })
+      navigate('/login', { replace: true })
       return
     }
     fetchOrders()
@@ -349,41 +352,8 @@ export default function AdminDashboard() {
   }, [orders, query, filter])
 
   return (
-    <main className="min-h-screen bg-cream">
+    <main className="min-h-screen bg-cream pt-24 sm:pt-32">
       <SEO title="Admin Dashboard" description="Little Essentials order management." noIndex />
-
-      {/* Top bar */}
-      <header className="sticky top-0 z-20 border-b border-cappuccino/30 bg-espresso">
-        <div className="mx-auto flex max-w-screen-lg items-center justify-between px-4 py-3.5 sm:px-6">
-          <div className="flex items-center gap-2.5">
-            <div className="flex h-9 w-9 items-center justify-center rounded-[10px] bg-caramel/20 ring-1 ring-inset ring-caramel/30">
-              <PackageCheck size={17} className="text-caramel" />
-            </div>
-            <div>
-              <p className="font-playfair text-[16px] font-bold leading-none text-cream">Little Essentials</p>
-              <p className="mt-0.5 font-dm text-[10px] uppercase tracking-ultra text-caramel">Admin · Orders</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="hidden font-dm text-[12px] text-cream/60 sm:block">{email}</span>
-            <button
-              onClick={fetchOrders}
-              className="flex h-9 w-9 items-center justify-center rounded-[9px] border border-cream/15 text-cream/80 transition-colors hover:bg-cream/10"
-              type="button"
-              aria-label="Refresh"
-            >
-              <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
-            </button>
-            <button
-              onClick={doLogout}
-              className="flex h-9 items-center gap-1.5 rounded-[9px] bg-caramel px-3 font-dm text-[12px] font-medium text-espresso transition-colors hover:bg-cream"
-              type="button"
-            >
-              <LogOut size={13} /> Logout
-            </button>
-          </div>
-        </div>
-      </header>
 
       <div className="mx-auto max-w-screen-lg px-4 py-6 sm:px-6 sm:py-8">
         {/* Stats */}
@@ -458,6 +428,39 @@ export default function AdminDashboard() {
             </div>
           </>
         )}
+      </div>
+
+      {/* Bottom Admin Control Bar */}
+      <div className="mt-8 border-t border-cappuccino/30 bg-espresso">
+        <div className="mx-auto flex max-w-screen-lg items-center justify-between px-4 py-4 sm:px-6">
+          <div className="flex items-center gap-2.5">
+            <div className="flex h-9 w-9 items-center justify-center rounded-[10px] bg-caramel/20 ring-1 ring-inset ring-caramel/30">
+              <PackageCheck size={17} className="text-caramel" />
+            </div>
+            <div>
+              <p className="font-playfair text-[16px] font-bold leading-none text-cream">Little Essentials</p>
+              <p className="mt-0.5 font-dm text-[10px] uppercase tracking-ultra text-caramel">Admin · Control Panel</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="hidden font-dm text-[12px] text-cream/60 sm:block">{email}</span>
+            <button
+              onClick={fetchOrders}
+              className="flex h-9 w-9 items-center justify-center rounded-[9px] border border-cream/15 text-cream/80 transition-colors hover:bg-cream/10"
+              type="button"
+              aria-label="Refresh"
+            >
+              <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
+            </button>
+            <button
+              onClick={doLogout}
+              className="flex h-9 items-center gap-1.5 rounded-[9px] bg-caramel px-3 font-dm text-[12px] font-medium text-espresso transition-colors hover:bg-cream"
+              type="button"
+            >
+              <LogOut size={13} /> Logout
+            </button>
+          </div>
+        </div>
       </div>
     </main>
   )

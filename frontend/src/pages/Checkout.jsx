@@ -644,6 +644,33 @@ export default function Checkout() {
 
       const totalPaise = Math.round((subtotal + shippingCost) * 100)
 
+      if (totalPaise === 0) {
+        // Handle free order bypass
+        const freeOrderRes = await fetch('/api/create-free-order', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            cartItems: cartItems,
+            customerInfo: information,
+            customerId: user?.id,
+          })
+        })
+
+        if (!freeOrderRes.ok) {
+          const errorData = await freeOrderRes.json().catch(() => ({}))
+          throw new Error(errorData.error || 'Failed to process free order.')
+        }
+
+        const verifyData = await freeOrderRes.json()
+        if (verifyData.success && verifyData.shopify_order_id) {
+          useStore.setState({ cartItems: [] })
+          navigate(`/order/${verifyData.shopify_order_id}/track`)
+        } else {
+          throw new Error('Failed to create order in Shopify.')
+        }
+        return
+      }
+
       const response = await fetch('/api/create-order', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

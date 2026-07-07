@@ -12,6 +12,7 @@ import { useShopifyAuth } from '../hooks/useShopifyAuth'
 import { useAdminAuth } from '../hooks/useAdminAuth'
 import { useNavigate } from 'react-router-dom'
 import useStore from '../store/useStore'
+import AdminDashboard from './AdminDashboard'
 
 const HERO_IMAGE =
   'https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?w=1300&q=90'
@@ -37,14 +38,15 @@ function WishlistProductCard({ handle }) {
 export default function Login() {
   const navigate = useNavigate()
   const { products } = useShopifyProducts({ first: 12 })
-  const { user, isAuthenticated, login, register, logout, recoverPassword, fetchOrders, fetchProfile, loading, error: authError } = useShopifyAuth()
-  const { login: adminLogin } = useAdminAuth()
+  const { user, token: customerToken, isAuthenticated, login, register, logout, recoverPassword, fetchOrders, fetchProfile, loading, error: authError } = useShopifyAuth()
+  const { login: adminLogin, exchangeCustomerToken } = useAdminAuth()
 
   const [tab, setTab] = useState('login')
   const [dashboardTab, setDashboardTab] = useState('overview')
   const [mobileDropdownOpen, setMobileDropdownOpen] = useState(false)
   const [orders, setOrders] = useState([])
   const [ordersLoading, setOrdersLoading] = useState(false)
+  const [selectedOrder, setSelectedOrder] = useState(null)
   const [form, setForm] = useState({ name: '', email: '', password: '' })
   const wishlist = useStore((state) => state.wishlist)
   
@@ -108,6 +110,15 @@ export default function Login() {
 
   useEffect(() => {
     if (isAuthenticated) {
+      if (user?.email?.toLowerCase() === 'littleessentialsofficial@gmail.com') {
+        exchangeCustomerToken(customerToken).then((success) => {
+          if (success) {
+            navigate('/admin')
+          }
+        })
+        return
+      }
+
       fetchProfile()
       
       setOrdersLoading(true)
@@ -122,7 +133,7 @@ export default function Login() {
           setOrdersLoading(false)
         })
     }
-  }, [isAuthenticated])
+  }, [isAuthenticated, user?.email, customerToken, exchangeCustomerToken, navigate])
   
   const setField = (key) => (event) =>
     setForm((current) => ({
@@ -434,38 +445,205 @@ export default function Login() {
                         exit={{ opacity: 0, x: -20 }}
                         className="space-y-4"
                       >
-                        {ordersLoading ? (
+                        {selectedOrder ? (
+                          <div className="space-y-6">
+                            <button
+                              onClick={() => setSelectedOrder(null)}
+                              className="group flex items-center gap-2 font-dm text-[12px] font-bold text-caramel transition-colors hover:text-espresso"
+                            >
+                              <ArrowRight size={14} className="rotate-180 transition-transform group-hover:-translate-x-1" />
+                              Back to Orders
+                            </button>
+                            <div className="rounded-2xl border border-cappuccino/30 bg-white/50 p-6 shadow-sm">
+                              <div className="mb-6 flex flex-wrap items-center justify-between gap-4 border-b border-cappuccino/10 pb-6">
+                                <div>
+                                  <div className="flex items-center gap-3">
+                                    <h3 className="font-playfair text-2xl font-bold text-espresso">Order {selectedOrder.name}</h3>
+                                    <span className={`inline-block rounded-full px-3 py-1 font-dm text-[10px] font-bold uppercase tracking-wider ${selectedOrder.displayFulfillmentStatus === 'FULFILLED' ? 'bg-blue-100 text-blue-700' : 'bg-cappuccino/20 text-mocha'}`}>
+                                      {selectedOrder.displayFulfillmentStatus === 'FULFILLED' ? 'Delivered' : 'Not Delivered'}
+                                    </span>
+                                  </div>
+                                  <p className="font-dm text-[13px] text-mocha mt-1">
+                                    Placed on {new Date(selectedOrder.createdAt).toLocaleDateString()} at {new Date(selectedOrder.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                                  </p>
+                                </div>
+                                <div className="text-right flex flex-col items-end">
+                                  <div className="mb-2">
+                                    <span className={`inline-block rounded-full px-3 py-1 font-dm text-[10px] font-bold uppercase ${selectedOrder.displayFinancialStatus === 'PAID' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'}`}>
+                                      {selectedOrder.displayFinancialStatus || 'PENDING'}
+                                    </span>
+                                  </div>
+                                  <p className="font-dm text-lg font-bold text-espresso">
+                                    {selectedOrder.totalPriceSet?.shopMoney?.amount} {selectedOrder.totalPriceSet?.shopMoney?.currencyCode}
+                                  </p>
+                                </div>
+                              </div>
+                              
+                              <div className="space-y-4">
+                                <h4 className="font-dm text-[11px] font-bold uppercase tracking-wider text-caramel mb-2">Items</h4>
+                                {selectedOrder.lineItems?.edges?.map((item, idx) => {
+                                  const imgUrl = item.node.variant?.image?.url
+                                  const priceAmount = item.node.originalTotalPrice?.amount || item.node.variant?.priceV2?.amount || 0
+                                  
+                                  return (
+                                    <div key={idx} className="flex items-center gap-4 rounded-[14px] border border-cappuccino/30 bg-cream/30 p-3 mb-3">
+                                      {imgUrl ? (
+                                        <img src={imgUrl} alt={item.node.title} className="h-16 w-16 rounded-[10px] object-cover" />
+                                      ) : (
+                                        <div className="flex h-16 w-16 items-center justify-center rounded-[10px] bg-cream-light text-mocha">
+                                          <ShoppingBag size={20} />
+                                        </div>
+                                      )}
+                                      <div className="flex-1 min-w-0">
+                                        <h5 className="font-dm text-[13px] font-medium text-espresso line-clamp-2">{item.node.title}</h5>
+                                      </div>
+                                      <div className="flex items-center gap-4 flex-shrink-0 pl-2">
+                                        <span className="flex h-[26px] items-center justify-center rounded-full bg-cream px-3 font-dm text-[11px] font-semibold text-espresso">
+                                          ×{item.node.quantity}
+                                        </span>
+                                        <span className="font-dm text-[14px] font-semibold text-espresso">
+                                          ₹{Number(priceAmount).toLocaleString('en-IN', { maximumFractionDigits: 2 })}
+                                        </span>
+                                      </div>
+                                    </div>
+                                  )
+                                })}
+                              </div>
+
+                              <div className="mt-8 grid gap-8 md:grid-cols-2">
+                                {/* Shipping Address */}
+                                {selectedOrder.shippingAddress && (
+                                  <div>
+                                    <h4 className="font-dm text-[11px] font-bold uppercase tracking-wider text-caramel mb-3 border-b border-cappuccino/10 pb-2">Shipping Address</h4>
+                                    <div className="rounded-[14px] bg-white/40 p-4 text-sm font-dm text-mocha leading-relaxed">
+                                      <p className="font-bold text-espresso">{selectedOrder.shippingAddress.firstName} {selectedOrder.shippingAddress.lastName}</p>
+                                      {selectedOrder.shippingAddress.address1 && <p>{selectedOrder.shippingAddress.address1}</p>}
+                                      {selectedOrder.shippingAddress.address2 && <p>{selectedOrder.shippingAddress.address2}</p>}
+                                      <p>
+                                        {selectedOrder.shippingAddress.city}{selectedOrder.shippingAddress.province ? `, ${selectedOrder.shippingAddress.province}` : ''} {selectedOrder.shippingAddress.zip}
+                                      </p>
+                                      <p>{selectedOrder.shippingAddress.country}</p>
+                                    </div>
+                                  </div>
+                                )}
+
+                                {/* Order Summary */}
+                                <div>
+                                  <h4 className="font-dm text-[11px] font-bold uppercase tracking-wider text-caramel mb-3 border-b border-cappuccino/10 pb-2">Order Summary</h4>
+                                  <div className="rounded-[14px] bg-white/40 p-4 space-y-3 font-dm text-[13px]">
+                                    {selectedOrder.subtotalPriceV2 && (
+                                      <div className="flex justify-between text-mocha">
+                                        <span>Subtotal</span>
+                                        <span className="font-medium text-espresso">₹{Number(selectedOrder.subtotalPriceV2.amount).toLocaleString('en-IN', { maximumFractionDigits: 2 })}</span>
+                                      </div>
+                                    )}
+                                    {selectedOrder.totalShippingPriceV2 && (
+                                      <div className="flex justify-between text-mocha">
+                                        <span>Shipping</span>
+                                        <span className="font-medium text-espresso">
+                                          {Number(selectedOrder.totalShippingPriceV2.amount) === 0 ? 'Free' : `₹${Number(selectedOrder.totalShippingPriceV2.amount).toLocaleString('en-IN', { maximumFractionDigits: 2 })}`}
+                                        </span>
+                                      </div>
+                                    )}
+                                    {selectedOrder.totalTaxV2 && Number(selectedOrder.totalTaxV2.amount) > 0 && (
+                                      <div className="flex justify-between text-mocha">
+                                        <span>Taxes</span>
+                                        <span className="font-medium text-espresso">₹{Number(selectedOrder.totalTaxV2.amount).toLocaleString('en-IN', { maximumFractionDigits: 2 })}</span>
+                                      </div>
+                                    )}
+                                    <div className="flex justify-between text-mocha">
+                                      <span>Payment Status</span>
+                                      <span className={`font-bold ${selectedOrder.displayFinancialStatus === 'PAID' ? 'text-green-600' : 'text-orange-500'}`}>
+                                        {selectedOrder.displayFinancialStatus || 'PENDING'}
+                                      </span>
+                                    </div>
+                                    <div className="mt-2 pt-3 border-t border-cappuccino/20 flex justify-between">
+                                      <span className="font-bold text-espresso">Total</span>
+                                      <span className="font-bold text-espresso text-[15px]">₹{Number(selectedOrder.totalPriceSet?.shopMoney?.amount).toLocaleString('en-IN', { maximumFractionDigits: 2 })}</span>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                              
+                              {selectedOrder.statusUrl && (
+                                <div className="mt-6 border-t border-cappuccino/10 pt-6 text-right">
+                                  <a
+                                    href={selectedOrder.statusUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center gap-2 rounded-full bg-mocha px-6 py-2.5 font-dm text-[13px] font-medium text-cream hover:bg-espresso transition-colors"
+                                  >
+                                    View Receipt / Invoice
+                                  </a>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        ) : ordersLoading ? (
                           <div className="flex h-64 items-center justify-center">
                             <div className="h-6 w-6 animate-spin rounded-full border-2 border-caramel border-t-transparent" />
                           </div>
                         ) : orders.length > 0 ? (
-                          <div className="overflow-hidden rounded-2xl border border-cappuccino/30 bg-white/50 shadow-sm">
-                            <table className="w-full text-left">
-                              <thead>
-                                <tr className="border-b border-cappuccino/20 bg-cream/30">
-                                  <th className="px-6 py-4 font-dm text-[11px] font-bold uppercase tracking-wider text-caramel">Order</th>
-                                  <th className="px-6 py-4 font-dm text-[11px] font-bold uppercase tracking-wider text-caramel">Date</th>
-                                  <th className="px-6 py-4 font-dm text-[11px] font-bold uppercase tracking-wider text-caramel">Status</th>
-                                  <th className="px-6 py-4 font-dm text-[11px] font-bold uppercase tracking-wider text-caramel text-right">Total</th>
-                                </tr>
-                              </thead>
-                              <tbody className="divide-y divide-cappuccino/10">
-                                {orders.map((order) => (
-                                  <tr key={order.id} className="hover:bg-cream/20 transition-colors">
-                                    <td className="px-6 py-4 font-dm text-sm font-bold text-espresso">{order.name}</td>
-                                    <td className="px-6 py-4 font-dm text-sm text-mocha">{new Date(order.createdAt).toLocaleDateString()}</td>
-                                    <td className="px-6 py-4">
-                                      <span className="inline-block rounded-full bg-cream-light px-3 py-1 font-dm text-[10px] font-bold uppercase text-caramel">
-                                        {order.displayFulfillmentStatus}
-                                      </span>
-                                    </td>
-                                    <td className="px-6 py-4 font-dm text-sm font-semibold text-espresso text-right">
-                                      {order.totalPriceSet.shopMoney.amount} {order.totalPriceSet.shopMoney.currencyCode}
-                                    </td>
-                                  </tr>
-                                ))}
-                              </tbody>
-                            </table>
+                          <div className="space-y-4">
+                            {orders.map((order) => {
+                              const firstItem = order.lineItems?.edges?.[0]?.node
+                              const imgUrl = firstItem?.variant?.image?.url
+                              const itemCount = order.lineItems?.edges?.length || 0
+
+                              return (
+                                <div 
+                                  key={order.id} 
+                                  onClick={() => setSelectedOrder(order)}
+                                  className="group flex cursor-pointer items-center justify-between gap-4 rounded-2xl border border-cappuccino/30 bg-white/50 p-4 shadow-sm transition-all hover:border-cappuccino/60 hover:bg-white"
+                                >
+                                  <div className="flex items-center gap-4">
+                                    <div className="relative flex-shrink-0">
+                                      {imgUrl ? (
+                                        <img src={imgUrl} alt="Product" className="h-16 w-16 rounded-[12px] object-cover border border-cream" />
+                                      ) : (
+                                        <div className="flex h-16 w-16 items-center justify-center rounded-[12px] bg-cream-light border border-cream text-mocha">
+                                          <ShoppingBag size={20} />
+                                        </div>
+                                      )}
+                                      {itemCount > 1 && (
+                                        <span className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-espresso font-dm text-[10px] font-bold text-cream shadow-sm">
+                                          +{itemCount - 1}
+                                        </span>
+                                      )}
+                                    </div>
+                                    
+                                    <div>
+                                      <h4 className="font-dm text-[15px] font-bold text-espresso transition-colors group-hover:text-caramel">
+                                        Order {order.name}
+                                      </h4>
+                                      <p className="mt-0.5 font-dm text-[12px] text-mocha">
+                                        {new Date(order.createdAt).toLocaleDateString()}
+                                      </p>
+                                      <div className="mt-2 flex items-center gap-1.5">
+                                        <span className={`inline-flex items-center rounded-full px-2 py-0.5 font-dm text-[9px] font-bold uppercase tracking-wider ${order.displayFinancialStatus === 'PAID' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'}`}>
+                                          {order.displayFinancialStatus || 'PENDING'}
+                                        </span>
+                                        <span className={`inline-flex items-center rounded-full px-2 py-0.5 font-dm text-[9px] font-bold uppercase tracking-wider ${order.displayFulfillmentStatus === 'FULFILLED' ? 'bg-blue-100 text-blue-700' : 'bg-cappuccino/20 text-mocha'}`}>
+                                          {order.displayFulfillmentStatus === 'FULFILLED' ? 'DELIVERED' : 'NOT DELIVERED'}
+                                        </span>
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  <div className="flex items-center gap-6 text-right">
+                                    <div>
+                                      <p className="font-dm text-[11px] font-bold uppercase tracking-wider text-caramel">Total</p>
+                                      <p className="font-dm text-[14px] font-bold text-espresso">
+                                        ₹{Number(order.totalPriceSet.shopMoney.amount).toLocaleString('en-IN', { maximumFractionDigits: 2 })}
+                                      </p>
+                                    </div>
+                                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-cream-light text-caramel transition-colors group-hover:bg-caramel group-hover:text-espresso">
+                                      <ArrowRight size={16} />
+                                    </div>
+                                  </div>
+                                </div>
+                              )
+                            })}
                           </div>
                         ) : (
                           <div className="flex h-64 flex-col items-center justify-center text-center">
