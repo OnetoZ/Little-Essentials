@@ -21,7 +21,7 @@ import {
 export function useShopifyAuth() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
-  
+
   // Get user state from local storage
   const [user, setUser] = useState(() => {
     const saved = localStorage.getItem('le_customer')
@@ -61,7 +61,7 @@ export function useShopifyAuth() {
         customer: customerData.customer,
         expiresAt: customerAccessToken.expiresAt
       }
-      
+
       localStorage.setItem('le_customer', JSON.stringify(session))
       setUser(session)
       return session
@@ -146,6 +146,11 @@ export function useShopifyAuth() {
           createdAt: o.processedAt,
           displayFulfillmentStatus: o.fulfillmentStatus,
           displayFinancialStatus: o.financialStatus,
+          statusUrl: o.statusUrl,
+          subtotalPriceV2: o.subtotalPriceV2,
+          totalShippingPriceV2: o.totalShippingPriceV2,
+          totalTaxV2: o.totalTaxV2,
+          shippingAddress: o.shippingAddress,
           totalPriceSet: {
             shopMoney: {
               amount: o.totalPriceV2?.amount,
@@ -158,6 +163,8 @@ export function useShopifyAuth() {
                 title: le.node.title,
                 quantity: le.node.quantity,
                 image: le.node.variant?.image || null,
+                originalTotalPrice: le.node.originalTotalPrice || null,
+                variant: le.node.variant || null,
               }
             })) || []
           }
@@ -178,7 +185,12 @@ export function useShopifyAuth() {
         customerAccessToken: user.token
       })
 
-      if (!data.customer) return null
+      if (!data.customer) {
+        // Token is likely invalid or expired
+        localStorage.removeItem('le_customer')
+        setUser(null)
+        return null
+      }
 
       if (JSON.stringify(user?.customer) !== JSON.stringify(data.customer)) {
         const updatedSession = { ...user, customer: data.customer }
@@ -188,6 +200,10 @@ export function useShopifyAuth() {
       return data.customer
     } catch (err) {
       console.error('Error fetching profile:', err)
+      if (err.message.includes('Unidentified customer') || err.message.includes('access')) {
+        localStorage.removeItem('le_customer')
+        setUser(null)
+      }
       return null
     }
   }, [user])

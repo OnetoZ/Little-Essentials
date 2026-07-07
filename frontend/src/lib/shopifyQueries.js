@@ -300,14 +300,30 @@ export const CUSTOMER_ORDERS_QUERY = `
             processedAt
             fulfillmentStatus
             financialStatus
+            statusUrl
+            subtotalPriceV2 { amount currencyCode }
+            totalShippingPriceV2 { amount currencyCode }
+            totalTaxV2 { amount currencyCode }
             totalPriceV2 { amount currencyCode }
-            lineItems(first: 5) {
+            shippingAddress {
+              firstName
+              lastName
+              address1
+              address2
+              city
+              province
+              country
+              zip
+            }
+            lineItems(first: 20) {
               edges {
                 node {
                   title
                   quantity
+                  originalTotalPrice { amount currencyCode }
                   variant {
                     image { url }
+                    priceV2 { amount currencyCode }
                   }
                 }
               }
