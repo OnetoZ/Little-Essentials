@@ -9,6 +9,8 @@ import SmartImage from '../components/UI/SmartImage'
 import useStore from '../store/useStore'
 
 
+/*
+// ── Shopify Order Mapper (Commented Out) ──────────────────────────────
 function mapShopifyOrderToMock(shopifyOrder) {
   if (!shopifyOrder) return null;
 
@@ -73,9 +75,8 @@ function mapShopifyOrderToMock(shopifyOrder) {
     trackingUrl: shopifyOrder.fulfillments?.[0]?.trackingInfo?.[0]?.url || null
   };
 }
-
-
-
+// ──────────────────────────────────────────────────────────────────────
+*/
 
 export default function OrderTracking() {
   const { id } = useParams()
@@ -86,24 +87,86 @@ export default function OrderTracking() {
   const orderId = id
 
   useEffect(() => {
+    if (!orderId) {
+      setLoading(false);
+      return;
+    }
+
+    // Direct local order data - Shopify API fetch and fallback commented out
+    setOrderData({
+      id: orderId?.startsWith('#') ? orderId : `#${orderId}`,
+      status: 'confirmed',
+      product: {
+        id: 'p002',
+        name: 'Cypress & Fir Ceramic Candle',
+        brand: 'PADDYWAX',
+        price: 1800,
+        image: 'https://images.unsplash.com/photo-1602928298849-325cec8771cc?w=800&q=85',
+        variantTitle: 'Default',
+      },
+      estimatedDelivery: 'Delivery estimate: 3-5 business days',
+      placedOn: new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }),
+      deliveryAddress: '12 Koregaon Park Road, Pune — 411001',
+      stages: [
+        {
+          key: 'confirmed',
+          label: 'Order Confirmed',
+          date: new Date().toLocaleDateString('en-GB', { month: 'short', day: 'numeric' }),
+          time: new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }),
+          done: true,
+        },
+        {
+          key: 'packed',
+          label: 'Packed',
+          date: '',
+          time: '',
+          done: false,
+        },
+        {
+          key: 'dispatched',
+          label: 'Dispatched',
+          date: '',
+          time: '',
+          done: false,
+        },
+        {
+          key: 'in_transit',
+          label: 'In Transit',
+          date: '',
+          time: '',
+          done: false,
+        },
+        {
+          key: 'delivered',
+          label: 'Delivered',
+          date: '',
+          time: '',
+          done: false,
+        },
+      ],
+      currentUpdate: 'Your order is confirmed and will be packed soon.',
+      trackingUrl: null
+    });
+    setLoading(false);
+
+    /*
+    // ── Shopify Order Fetch & Fallback (Commented Out) ────────────────
     async function fetchOrder() {
-      if (!orderId) {
-        setLoading(false);
-        return;
-      }
       try {
         const res = await fetch(`/api/shopify/order?id=${orderId}`);
         if (!res.ok) throw new Error('Order not found');
         const data = await res.json();
         setOrderData(mapShopifyOrderToMock(data));
       } catch (err) {
-        setError(err.message);
+        console.warn('[OrderTracking] Shopify order fetch failed, using fallback mock order:', err.message);
       } finally {
         setLoading(false);
       }
     }
     fetchOrder();
-  }, [orderId]);
+    // ──────────────────────────────────────────────────────────────────
+    */
+  }, [orderId])
 
   if (loading) {
     return <div className="min-h-screen bg-cream pt-[80px] flex items-center justify-center">Loading order...</div>;

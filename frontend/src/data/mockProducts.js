@@ -1,5 +1,44 @@
-export const products = [
+function slugify(text) {
+  return String(text || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)/g, '')
+}
 
+function buildVariantNodes(product) {
+  const entries = Object.entries(product.variants || {}).filter(
+    ([, vals]) => Array.isArray(vals) && vals.length > 0
+  )
+
+  if (entries.length === 0) {
+    return [
+      {
+        id: `gid://shopify/ProductVariant/${product.id}-default`,
+        title: 'Default',
+        available: !product.isSoldOut,
+        price: product.price,
+        compareAtPrice: product.originalPrice,
+        inventoryQuantity: product.isSoldOut ? 0 : 25,
+        selectedOptions: [],
+        image: product.images[0] || null,
+      },
+    ]
+  }
+
+  const [optionName, values] = entries[0]
+  return values.map((val, idx) => ({
+    id: `gid://shopify/ProductVariant/${product.id}-${idx + 1}`,
+    title: val,
+    available: !product.isSoldOut,
+    price: product.price,
+    compareAtPrice: product.originalPrice,
+    inventoryQuantity: product.isSoldOut ? 0 : 20,
+    selectedOptions: [{ name: optionName, value: val }],
+    image: product.images[idx] || product.images[0] || null,
+  }))
+}
+
+const rawProducts = [
   {
     id: 'p002',
     brand: 'PADDYWAX',
@@ -88,7 +127,6 @@ export const products = [
     description: 'Hand-polished solid brass. A minimal sculpture for your desk.',
     variants: { finish: ['Brass', 'Matte Black'] },
   },
-
   {
     id: 'p008',
     brand: 'ASSOULINE',
@@ -146,7 +184,6 @@ export const products = [
       'Textured organic cotton with a dry hand feel and spa-level softness.',
     variants: { color: ['Ivory', 'Sage', 'Terracotta'] },
   },
-
   {
     id: 'p012',
     brand: 'JO MALONE',
@@ -168,6 +205,18 @@ export const products = [
   },
 ]
 
+// Normalize products with handle, shopifyId, variantNodes, descriptionHtml
+export const products = rawProducts.map((p) => {
+  const handle = slugify(p.name)
+  return {
+    ...p,
+    handle,
+    shopifyId: `gid://shopify/Product/${p.id}`,
+    descriptionHtml: `<p>${p.description}</p>`,
+    variantNodes: buildVariantNodes(p),
+  }
+})
+
 export const categories = [
   'All',
   'Home',
@@ -176,12 +225,61 @@ export const categories = [
   'Accessories',
 ]
 
-export const getProductById = (id) =>
-  products.find((product) => product.id === id)
-export const getByCategory = (category) =>
-  category === 'All'
-    ? products
-    : products.filter((product) => product.category === category)
+export const mockCollections = [
+  {
+    id: 'col-home',
+    handle: 'home',
+    title: 'Home',
+    description: 'Objects that quiet the room.',
+    image: 'https://images.unsplash.com/photo-1602928298849-325cec8771cc?w=800&q=85',
+    products: products.filter((p) => p.category.toLowerCase() === 'home'),
+  },
+  {
+    id: 'col-fragrance',
+    handle: 'fragrance',
+    title: 'Fragrance',
+    description: 'Scents with memory and restraint.',
+    image: 'https://images.unsplash.com/photo-1541643600914-78b084683702?w=800&q=85',
+    products: products.filter((p) => p.category.toLowerCase() === 'fragrance'),
+  },
+  {
+    id: 'col-stationery',
+    handle: 'stationery',
+    title: 'Stationery',
+    description: 'Desk pieces with a point of view.',
+    image: 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=800&q=85',
+    products: products.filter((p) => p.category.toLowerCase() === 'stationery'),
+  },
+  {
+    id: 'col-accessories',
+    handle: 'accessories',
+    title: 'Accessories',
+    description: 'Small forms, sharper details.',
+    image: 'https://images.unsplash.com/photo-1586281010691-9b32a3db8bc2?w=800&q=85',
+    products: products.filter((p) => p.category.toLowerCase() === 'accessories'),
+  },
+]
+
+export const getProductById = (idOrHandle) => {
+  if (!idOrHandle) return null
+  const clean = String(idOrHandle).trim().toLowerCase()
+  return (
+    products.find(
+      (product) =>
+        product.id.toLowerCase() === clean ||
+        (product.handle && product.handle.toLowerCase() === clean) ||
+        slugify(product.name) === clean
+    ) || null
+  )
+}
+
+export const getByCategory = (category) => {
+  if (!category || category === 'All') return products
+  return products.filter(
+    (product) => product.category.toLowerCase() === category.toLowerCase(),
+  )
+}
+
 export const getNewArrivals = () => products.filter((product) => product.isNew)
 export const getFeatured = () => products.slice(0, 4)
 export const getFeaturedProducts = getFeatured

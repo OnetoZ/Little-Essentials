@@ -1,9 +1,11 @@
-import { getShopifyAccessToken } from '../_utils/shopifyToken.js';
+// import { getShopifyAccessToken } from '../_utils/shopifyToken.js';
 import { requireAdmin } from '../_utils/adminAuth.js';
-import { normalizeAdminOrder } from '../_utils/orders.js';
+// import { normalizeAdminOrder } from '../_utils/orders.js';
 
-const ADMIN_API_VERSION = process.env.VITE_SHOPIFY_API_VERSION_ADMIN || '2025-07';
+// const ADMIN_API_VERSION = process.env.VITE_SHOPIFY_API_VERSION_ADMIN || '2025-07';
 
+/*
+// ── Shopify GraphQL Admin Orders Query (Commented Out) ────────────────
 const ORDERS_QUERY = `
   query getOrders($first: Int!, $after: String) {
     orders(first: $first, after: $after, sortKey: CREATED_AT, reverse: true) {
@@ -38,6 +40,8 @@ const ORDERS_QUERY = `
     }
   }
 `;
+// ──────────────────────────────────────────────────────────────────────
+*/
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -58,46 +62,51 @@ export default async function handler(req, res) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
 
-  const shopifyDomain = process.env.VITE_SHOPIFY_STORE_DOMAIN;
-  let accessToken;
-  try {
-    accessToken = getShopifyAccessToken();
-  } catch (err) {
-    console.error(err);
-    return res.status(500).json({ error: 'Server configuration error' });
-  }
-  if (!shopifyDomain) {
-    return res.status(500).json({ error: 'Server configuration error' });
-  }
-
-  const first = Math.min(parseInt(req.query.first, 10) || 25, 50);
-  const after = req.query.after || null;
-
-  try {
-    const response = await fetch(`https://${shopifyDomain}/admin/api/${ADMIN_API_VERSION}/graphql.json`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Shopify-Access-Token': accessToken,
+  // Shopify Admin API call commented out - return mock orders list
+  const mockOrders = [
+    {
+      id: '1001',
+      name: '#1001',
+      createdAt: new Date().toISOString(),
+      financialStatus: 'PAID',
+      fulfillmentStatus: 'UNFULFILLED',
+      note: 'Razorpay Order ID: order_mock123',
+      tags: [],
+      total: 1800,
+      currency: 'INR',
+      customer: {
+        name: 'Demo Collector',
+        email: 'demo@littleessentials.in',
+        phone: '+91 98765 43210',
       },
-      body: JSON.stringify({ query: ORDERS_QUERY, variables: { first, after } }),
-    });
+      shippingAddress: {
+        address1: '12 Koregaon Park Road',
+        city: 'Pune',
+        province: 'Maharashtra',
+        zip: '411001',
+      },
+      items: [
+        {
+          title: 'Cypress & Fir Ceramic Candle',
+          quantity: 1,
+          variantTitle: 'Default',
+          price: 1800,
+          image: 'https://images.unsplash.com/photo-1602928298849-325cec8771cc?w=800&q=85',
+        },
+      ],
+    },
+  ];
 
-    const data = await response.json();
-    if (data.errors) {
-      console.error('[Admin Orders] GraphQL error:', JSON.stringify(data.errors));
-      return res.status(500).json({ error: 'Error fetching orders' });
-    }
+  return res.status(200).json({
+    orders: mockOrders,
+    pageInfo: { hasNextPage: false, endCursor: null },
+  });
 
-    const conn = data.data?.orders;
-    const orders = (conn?.edges || []).map(({ node }) => normalizeAdminOrder(node));
-
-    return res.status(200).json({
-      orders,
-      pageInfo: conn?.pageInfo || { hasNextPage: false, endCursor: null },
-    });
-  } catch (error) {
-    console.error('[Admin Orders] error:', error);
-    return res.status(500).json({ error: 'Internal server error' });
-  }
+  /*
+  // ── Shopify Query Execution (Commented Out) ───────────────────────
+  const shopifyDomain = process.env.VITE_SHOPIFY_STORE_DOMAIN;
+  let accessToken = getShopifyAccessToken();
+  const response = await fetch(`https://${shopifyDomain}/admin/api/${ADMIN_API_VERSION}/graphql.json`, ...);
+  // ──────────────────────────────────────────────────────────────────
+  */
 }

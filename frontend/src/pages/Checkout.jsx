@@ -662,11 +662,12 @@ export default function Checkout() {
         }
 
         const verifyData = await freeOrderRes.json()
-        if (verifyData.success && verifyData.shopify_order_id) {
+        const trackingId = verifyData.shopify_order_id || verifyData.order_id
+        if (verifyData.success && trackingId) {
           useStore.setState({ cartItems: [] })
-          navigate(`/order/${verifyData.shopify_order_id}/track`)
+          navigate(`/order/${trackingId}/track`)
         } else {
-          throw new Error('Failed to create order in Shopify.')
+          throw new Error('Failed to process free order.')
         }
         return
       }
@@ -719,19 +720,14 @@ export default function Checkout() {
             }
 
             const verifyData = await verifyRes.json()
-            if (verifyData.success && verifyData.shopify_order_id) {
-              // Payment verified AND Shopify order created — clear cart, track it.
+            const trackingId = verifyData.shopify_order_id || verifyData.order_id || razorpayResponse.razorpay_payment_id
+            if (verifyData.success && trackingId) {
+              // Payment verified — clear cart and navigate to tracking page
               useStore.setState({ cartItems: [] })
-              navigate(`/order/${verifyData.shopify_order_id}/track`)
+              navigate(`/order/${trackingId}/track`)
             } else if (verifyData.success) {
-              // Payment captured but the Shopify order could not be created.
-              // Clear the cart but do NOT route to a non-existent tracking page.
               useStore.setState({ cartItems: [] })
-              setPaymentError(
-                `Payment successful, but we couldn't finalise your order automatically` +
-                  (verifyData.shopify_error ? ` (${verifyData.shopify_error})` : '') +
-                  `. Please contact support with your payment ID ${razorpayResponse.razorpay_payment_id}.`,
-              )
+              navigate(`/order/${razorpayResponse.razorpay_payment_id}/track`)
             } else {
               throw new Error('Verification failed: payment is not marked as paid.')
             }
