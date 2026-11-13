@@ -18,7 +18,9 @@ function ProductCard({
   
   if (!product) return null
 
-  const isWished = wishlist.includes(product.id)
+  const productId = String(product.id || product._id || product.slug || '')
+  const productSlug = product.slug ? String(product.slug) : ''
+  const isWished = wishlist.some((id) => String(id) === productId || (productSlug && String(id) === productSlug))
 
   const isOnSale = product.originalPrice && product.originalPrice > product.price
   const isSoldOut = product.isSoldOut
@@ -32,6 +34,7 @@ function ProductCard({
 
   const handleAddToCart = (event) => {
     event.preventDefault()
+    event.stopPropagation()
 
     if (!isSoldOut) {
       addToCart(product)
@@ -40,7 +43,8 @@ function ProductCard({
 
   const handleWishlist = (event) => {
     event.preventDefault()
-    toggleWishlist(product.id)
+    event.stopPropagation()
+    toggleWishlist(product.slug || product.id)
   }
 
   return (

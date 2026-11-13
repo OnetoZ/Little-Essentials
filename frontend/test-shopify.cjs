@@ -1,3 +1,5 @@
+/*
+// ── Shopify Storefront API Test (Commented Out) ─────────────────────
 // using native fetch
 
 const domain = 'littleessentials-6498.myshopify.com';
@@ -44,3 +46,6 @@ async function run() {
 }
 
 run();
+// ────────────────────────────────────────────────────────────────────
+*/
+

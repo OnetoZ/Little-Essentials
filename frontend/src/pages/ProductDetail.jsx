@@ -7,7 +7,7 @@ import ProductInfo from '../components/Product/ProductInfo'
 import RelatedProducts from '../components/Product/RelatedProducts'
 import SEO from '../components/SEO/SEO'
 import useStore from '../store/useStore'
-import { useShopifyProduct } from '../hooks/useShopify'
+import { useShopifyProduct } from '../hooks/useCatalog'
 
 export default function ProductDetail() {
   const { id: handle } = useParams()

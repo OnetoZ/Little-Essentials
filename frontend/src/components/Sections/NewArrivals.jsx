@@ -5,7 +5,7 @@ import ProductCard from '../ProductCard/ProductCard'
 import ProductCardSkeleton from '../ProductCard/ProductCardSkeleton'
 import RevealOnScroll from '../UI/RevealOnScroll'
 import SectionHeader from '../UI/SectionHeader'
-import { useShopifyProducts } from '../../hooks/useShopify'
+import { useShopifyProducts } from '../../hooks/useCatalog'
 
 export default function NewArrivals() {
   const scrollRef = useRef(null)

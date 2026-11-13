@@ -3,7 +3,7 @@ import { motion, useScroll, useTransform } from 'framer-motion'
 import { ArrowRight, Sparkles, Star } from 'lucide-react'
 import Button from '../UI/Button'
 import SmartImage from '../UI/SmartImage'
-import { useShopifyProducts } from '../../hooks/useShopify'
+import { useShopifyProducts } from '../../hooks/useCatalog'
 
 const CAMPAIGN_IMAGE =
   'https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?w=1500&q=90'

@@ -92,80 +92,99 @@ export default function OrderTracking() {
       return;
     }
 
-    // Direct local order data - Shopify API fetch and fallback commented out
-    setOrderData({
-      id: orderId?.startsWith('#') ? orderId : `#${orderId}`,
-      status: 'confirmed',
-      product: {
-        id: 'p002',
-        name: 'Cypress & Fir Ceramic Candle',
-        brand: 'PADDYWAX',
-        price: 1800,
-        image: 'https://images.unsplash.com/photo-1602928298849-325cec8771cc?w=800&q=85',
-        variantTitle: 'Default',
-      },
-      estimatedDelivery: 'Delivery estimate: 3-5 business days',
-      placedOn: new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }),
-      deliveryAddress: '12 Koregaon Park Road, Pune — 411001',
-      stages: [
-        {
-          key: 'confirmed',
-          label: 'Order Confirmed',
-          date: new Date().toLocaleDateString('en-GB', { month: 'short', day: 'numeric' }),
-          time: new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }),
-          done: true,
-        },
-        {
-          key: 'packed',
-          label: 'Packed',
-          date: '',
-          time: '',
-          done: false,
-        },
-        {
-          key: 'dispatched',
-          label: 'Dispatched',
-          date: '',
-          time: '',
-          done: false,
-        },
-        {
-          key: 'in_transit',
-          label: 'In Transit',
-          date: '',
-          time: '',
-          done: false,
-        },
-        {
-          key: 'delivered',
-          label: 'Delivered',
-          date: '',
-          time: '',
-          done: false,
-        },
-      ],
-      currentUpdate: 'Your order is confirmed and will be packed soon.',
-      trackingUrl: null
-    });
-    setLoading(false);
-
-    /*
-    // ── Shopify Order Fetch & Fallback (Commented Out) ────────────────
-    async function fetchOrder() {
+    async function fetchOrderDetails() {
       try {
-        const res = await fetch(`/api/shopify/order?id=${orderId}`);
-        if (!res.ok) throw new Error('Order not found');
-        const data = await res.json();
-        setOrderData(mapShopifyOrderToMock(data));
+        setLoading(true);
+        setError(null);
+
+        const token = localStorage.getItem('le_customer_token');
+        const headers = token ? { Authorization: `Bearer ${token}` } : {};
+
+        const res = await fetch(`/api/orders/${encodeURIComponent(orderId)}`, { headers });
+        const data = await res.json().catch(() => ({}));
+
+        if (res.ok && data.success && data.order) {
+          const ord = data.order;
+          const firstItem = ord.items?.[0] || {};
+          const isShipped = ord.orderStatus === 'shipped' || ord.orderStatus === 'in_transit' || ord.orderStatus === 'delivered';
+          const isDelivered = ord.orderStatus === 'delivered';
+
+          setOrderData({
+            id: ord.orderNumber.startsWith('#') ? ord.orderNumber : `#${ord.orderNumber}`,
+            orderNumber: ord.orderNumber,
+            status: ord.orderStatus || 'confirmed',
+            product: {
+              id: firstItem.productId || 'p001',
+              name: firstItem.name || 'Order Item',
+              brand: firstItem.brand || 'Little Essentials',
+              price: firstItem.price || ord.total,
+              image: firstItem.image || 'https://images.unsplash.com/photo-1602928298849-325cec8771cc?w=800&q=85',
+              variantTitle: 'Default',
+            },
+            items: ord.items || [],
+            total: ord.total,
+            estimatedDelivery: ord.shippingMethod?.name === 'Express Delivery' ? 'Delivery estimate: 2-3 business days' : 'Delivery estimate: 5-7 business days',
+            placedOn: new Date(ord.createdAt || Date.now()).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }),
+            deliveryAddress: ord.shippingAddress
+              ? `${ord.shippingAddress.addressLine1 || ''}, ${ord.shippingAddress.city || ''} — ${ord.shippingAddress.postalCode || ''}`
+              : 'Delivery Address on file',
+            stages: [
+              {
+                key: 'confirmed',
+                label: 'Order Confirmed',
+                date: new Date(ord.createdAt || Date.now()).toLocaleDateString('en-GB', { month: 'short', day: 'numeric' }),
+                time: new Date(ord.createdAt || Date.now()).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }),
+                done: true,
+              },
+              {
+                key: 'packed',
+                label: 'Packed',
+                date: '',
+                time: '',
+                done: isShipped,
+              },
+              {
+                key: 'dispatched',
+                label: 'Dispatched',
+                date: ord.trackingNumber ? 'Shipped' : '',
+                time: ord.carrier || '',
+                done: isShipped,
+              },
+              {
+                key: 'in_transit',
+                label: 'In Transit',
+                date: '',
+                time: '',
+                done: ord.orderStatus === 'in_transit' || isDelivered,
+              },
+              {
+                key: 'delivered',
+                label: 'Delivered',
+                date: isDelivered ? 'Completed' : '',
+                time: '',
+                done: isDelivered,
+              },
+            ],
+            currentUpdate: isDelivered
+              ? 'Your package has been delivered successfully.'
+              : isShipped
+                ? `Dispatched via ${ord.carrier || 'carrier'}. Tracking: ${ord.trackingNumber || 'Available soon'}`
+                : 'Your order is confirmed and is being prepared.',
+            trackingUrl: null,
+          });
+        } else {
+          // Fallback if order not found
+          setError('Order details could not be found.');
+        }
       } catch (err) {
-        console.warn('[OrderTracking] Shopify order fetch failed, using fallback mock order:', err.message);
+        console.warn('Failed to fetch order from backend:', err.message);
+        setError(err.message);
       } finally {
         setLoading(false);
       }
     }
-    fetchOrder();
-    // ──────────────────────────────────────────────────────────────────
-    */
+
+    fetchOrderDetails();
   }, [orderId])
 
   if (loading) {

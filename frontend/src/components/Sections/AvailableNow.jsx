@@ -2,7 +2,7 @@ import { motion } from 'framer-motion'
 import ProductCard from '../ProductCard/ProductCard'
 import ProductCardSkeleton from '../ProductCard/ProductCardSkeleton'
 import SectionHeader from '../UI/SectionHeader'
-import { useShopifyProducts } from '../../hooks/useShopify'
+import { useShopifyProducts } from '../../hooks/useCatalog'
 
 export default function AvailableNow() {
   const { products, loading } = useShopifyProducts({ first: 6, sortKey: 'BEST_SELLING' })
