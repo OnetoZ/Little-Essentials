@@ -16,6 +16,7 @@ const Checkout = lazy(() => import('./pages/Checkout'))
 const InfoPage = lazy(() => import('./pages/InfoPage'))
 const OrderTracking = lazy(() => import('./pages/OrderTracking'))
 const Login = lazy(() => import('./pages/Login'))
+const Wishlist = lazy(() => import('./pages/Wishlist'))
 const AdminDashboard = lazy(() => import('./pages/AdminDashboard'))
 const NotFound = lazy(() => import('./pages/NotFound'))
 
@@ -28,7 +29,7 @@ function RouteFallback() {
 }
 
 
-import { useShopifyAuth } from './hooks/useShopifyAuth'
+import { useShopifyAuth } from './hooks/useCatalogAuth'
 import { Navigate } from 'react-router-dom'
 
 function AppRoutes() {
@@ -61,6 +62,7 @@ function AppRoutes() {
               <Route path="/collections" element={<Collections />} />
               <Route path="/product/:id" element={<ProductDetail />} />
               <Route path="/cart" element={<Cart />} />
+              <Route path="/wishlist" element={<Wishlist />} />
               <Route path="/checkout" element={<Checkout />} />
               <Route path="/contact" element={<InfoPage />} />
               <Route path="/faqs" element={<InfoPage />} />

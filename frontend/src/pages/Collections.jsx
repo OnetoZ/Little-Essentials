@@ -6,7 +6,7 @@ import ProductGrid from '../components/ProductCard/ProductGrid'
 import SEO from '../components/SEO/SEO'
 import RevealOnScroll from '../components/UI/RevealOnScroll'
 import SmartImage from '../components/UI/SmartImage'
-import { useShopifyProducts, useShopifyCollections } from '../hooks/useShopify'
+import { useShopifyProducts, useShopifyCollections } from '../hooks/useCatalog'
 
 const SORT_OPTIONS = [
   { label: 'Featured', value: 'featured' },

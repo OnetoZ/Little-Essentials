@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion'
 import { ArrowRight } from 'lucide-react'
 import Button from '../UI/Button'
-import { useShopifyProducts } from '../../hooks/useShopify'
+import { useShopifyProducts } from '../../hooks/useCatalog'
 import SmartImage from '../UI/SmartImage'
 
 export default function FeaturedSpotlight() {

@@ -13,7 +13,7 @@ import {
 import FloatInput from '../components/UI/FloatInput'
 import SmartImage from '../components/UI/SmartImage'
 import SEO from '../components/SEO/SEO'
-import { useShopifyAuth } from '../hooks/useShopifyAuth'
+import { useShopifyAuth } from '../hooks/useCatalogAuth'
 import useStore from '../store/useStore'
 import { sanitizeText } from '../utils/sanitize'
 
@@ -610,7 +610,7 @@ export default function Checkout() {
   const navigate = useNavigate()
   const cartItems = useStore((state) => state.cartItems)
   const subtotal = useStore((state) => state.cartTotal())
-  const { user, isAuthenticated } = useShopifyAuth()
+  const { user, token: customerToken, isAuthenticated } = useShopifyAuth()
 
   // Pre-fill user data if authenticated
   useMemo(() => {
@@ -637,100 +637,129 @@ export default function Checkout() {
     setPaymentError(null)
 
     try {
+      if (!isAuthenticated || !customerToken) {
+        throw new Error('Please sign in or create an account to proceed with checkout.')
+      }
+
+      if (!cartItems || cartItems.length === 0) {
+        throw new Error('Your cart is empty.')
+      }
+
       const isScriptLoaded = await loadRazorpayScript()
       if (!isScriptLoaded) {
         throw new Error('Razorpay SDK failed to load. Please check your internet connection.')
       }
 
-      const totalPaise = Math.round((subtotal + shippingCost) * 100)
+      // Step 1: Create Order on Express Backend with server-side pricing and shipping
+      const orderPayload = {
+        items: cartItems.map((item) => ({
+          productId: item.productId || item.id,
+          quantity: item.qty || item.quantity || 1,
+        })),
+        shippingAddress: {
+          name: `${information.firstName} ${information.lastName}`.trim(),
+          email: information.email,
+          phone: information.phone,
+          addressLine1: information.address,
+          addressLine2: information.address2 || '',
+          city: information.city,
+          state: information.state,
+          postalCode: information.pincode,
+          country: 'India',
+        },
+        shippingMethod: shippingMethod, // 'standard' or 'express'
+      }
 
-      if (totalPaise === 0) {
-        // Handle free order bypass
-        const freeOrderRes = await fetch('/api/create-free-order', {
+      const orderRes = await fetch('/api/orders', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${customerToken}`,
+        },
+        body: JSON.stringify(orderPayload),
+      })
+
+      const orderData = await orderRes.json().catch(() => ({}))
+      if (!orderRes.ok || !orderData.success || !orderData.order) {
+        throw new Error(orderData.message || 'Failed to create order on server.')
+      }
+
+      const internalOrder = orderData.order
+
+      // Step 2: If server-calculated total is 0, handle free order confirmation
+      if (internalOrder.total === 0) {
+        const freeRes = await fetch('/api/payments/free-order', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${customerToken}`,
+          },
           body: JSON.stringify({
-            cartItems: cartItems,
-            customerInfo: information,
-            customerId: user?.id,
-          })
+            orderNumber: internalOrder.orderNumber,
+          }),
         })
 
-        if (!freeOrderRes.ok) {
-          const errorData = await freeOrderRes.json().catch(() => ({}))
-          throw new Error(errorData.error || 'Failed to process free order.')
+        const freeData = await freeRes.json().catch(() => ({}))
+        if (!freeRes.ok || !freeData.success) {
+          throw new Error(freeData.message || 'Failed to process promotional free order.')
         }
 
-        const verifyData = await freeOrderRes.json()
-        const trackingId = verifyData.shopify_order_id || verifyData.order_id
-        if (verifyData.success && trackingId) {
-          useStore.setState({ cartItems: [] })
-          navigate(`/order/${trackingId}/track`)
-        } else {
-          throw new Error('Failed to process free order.')
-        }
+        useStore.setState({ cartItems: [] })
+        navigate(`/order/${internalOrder.orderNumber}/track`)
         return
       }
 
-      const response = await fetch('/api/create-order', {
+      // Step 3: Initialize Razorpay Order via Express Backend
+      const payInitRes = await fetch('/api/payments/create-order', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${customerToken}`,
+        },
         body: JSON.stringify({
-          amount: totalPaise,
-          currency: 'INR',
-          receipt: `rcpt_${Date.now()}`
-        })
+          orderNumber: internalOrder.orderNumber,
+        }),
       })
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}))
-        throw new Error(errorData.error || 'Failed to initialize payment order with server.')
+      const payInitData = await payInitRes.json().catch(() => ({}))
+      if (!payInitRes.ok || !payInitData.success || !payInitData.order_id) {
+        throw new Error(payInitData.message || 'Failed to initialize payment gateway order.')
       }
 
-      const orderData = await response.json()
-      const { order_id } = orderData
-
+      // Step 4: Open Razorpay Checkout modal
       const options = {
-        key: import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_live_T7msUGTtcifr2z',
-        amount: totalPaise,
-        currency: 'INR',
+        key: payInitData.key_id,
+        amount: payInitData.amount,
+        currency: payInitData.currency || 'INR',
         name: 'Little Essentials',
-        description: 'Lifestyle Store Checkout',
-        order_id: order_id,
+        description: `Order ${internalOrder.orderNumber}`,
+        order_id: payInitData.order_id,
         handler: async function (razorpayResponse) {
           setPaymentLoading(true)
           try {
-            const verifyRes = await fetch('/api/verify-payment', {
+            // Step 5: Verify payment signature and capture on Express backend
+            const verifyRes = await fetch('/api/payments/verify', {
               method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${customerToken}`,
+              },
               body: JSON.stringify({
                 razorpay_order_id: razorpayResponse.razorpay_order_id,
                 razorpay_payment_id: razorpayResponse.razorpay_payment_id,
                 razorpay_signature: razorpayResponse.razorpay_signature,
-                cartItems: cartItems,
-                customerInfo: information,
-                customerId: user?.id,
-                totalAmount: subtotal + shippingCost
-              })
+                orderNumber: internalOrder.orderNumber,
+              }),
             })
 
-            if (!verifyRes.ok) {
-              const verifyError = await verifyRes.json().catch(() => ({}))
-              throw new Error(verifyError.error || 'Payment verification failed.')
+            const verifyData = await verifyRes.json().catch(() => ({}))
+            if (!verifyRes.ok || !verifyData.success) {
+              throw new Error(verifyData.message || 'Payment verification failed.')
             }
 
-            const verifyData = await verifyRes.json()
-            const trackingId = verifyData.shopify_order_id || verifyData.order_id || razorpayResponse.razorpay_payment_id
-            if (verifyData.success && trackingId) {
-              // Payment verified — clear cart and navigate to tracking page
-              useStore.setState({ cartItems: [] })
-              navigate(`/order/${trackingId}/track`)
-            } else if (verifyData.success) {
-              useStore.setState({ cartItems: [] })
-              navigate(`/order/${razorpayResponse.razorpay_payment_id}/track`)
-            } else {
-              throw new Error('Verification failed: payment is not marked as paid.')
-            }
+            // On verified payment success: clear cart and navigate to internal order tracking
+            useStore.setState({ cartItems: [] })
+            navigate(`/order/${internalOrder.orderNumber}/track`)
           } catch (err) {
             setPaymentError(err.message || 'Error verifying payment.')
           } finally {
@@ -740,20 +769,21 @@ export default function Checkout() {
         prefill: {
           name: `${information.firstName} ${information.lastName}`,
           email: information.email,
-          contact: information.phone || ''
+          contact: information.phone || '',
         },
         notes: {
-          address: `${information.address}, ${information.address2 || ''}, ${information.city}, ${information.state} - ${information.pincode}`
+          orderNumber: internalOrder.orderNumber,
+          address: `${information.address}, ${information.city}`,
         },
         theme: {
-          color: '#3B2A22'
+          color: '#3B2A22',
         },
         modal: {
           ondismiss: function () {
             setPaymentLoading(false)
             setPaymentError('Payment window was closed before completion.')
-          }
-        }
+          },
+        },
       }
 
       const rzp = new window.Razorpay(options)
@@ -767,7 +797,7 @@ export default function Checkout() {
       rzp.open()
     } catch (err) {
       console.error('Razorpay initialization error:', err)
-      setPaymentError(err.message || 'An error occurred while setting up the payment modal.')
+      setPaymentError(err.message || 'An error occurred while setting up payment.')
       setPaymentLoading(false)
     }
   }

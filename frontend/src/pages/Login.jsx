@@ -1,16 +1,15 @@
 import { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { ArrowRight, BadgeCheck, Gem, Heart, LockKeyhole, LogOut, MapPin, ShoppingBag, Sparkles, Truck, ChevronDown } from 'lucide-react'
 import FloatInput from '../components/UI/FloatInput'
 import SmartImage from '../components/UI/SmartImage'
 import SEO from '../components/SEO/SEO'
 import { sanitizeText } from '../utils/sanitize'
-import { useShopifyProducts, useShopifyProduct } from '../hooks/useShopify'
+import { useShopifyProducts, useShopifyProduct } from '../hooks/useCatalog'
 import ProductCard from '../components/ProductCard/ProductCard'
-import { useShopifyAuth } from '../hooks/useShopifyAuth'
+import { useShopifyAuth } from '../hooks/useCatalogAuth'
 import { useAdminAuth } from '../hooks/useAdminAuth'
-import { useNavigate } from 'react-router-dom'
 import useStore from '../store/useStore'
 import AdminDashboard from './AdminDashboard'
 
@@ -18,9 +17,14 @@ const HERO_IMAGE =
   'https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?w=1300&q=90'
 
 function WishlistProductCard({ handle }) {
-  const { product, loading } = useShopifyProduct(handle)
+  const { products } = useShopifyProducts({ first: 50 })
+  const { product: fetchedProduct, loading } = useShopifyProduct(handle)
 
-  if (loading) {
+  const product = products?.find(
+    (p) => String(p.id) === String(handle) || String(p._id) === String(handle) || p.slug === String(handle)
+  ) || fetchedProduct
+
+  if (loading && !product) {
     return (
       <div className="animate-pulse rounded-xl border border-cappuccino/20 p-4 bg-white/80 flex flex-col aspect-[4/5] justify-between">
         <div className="bg-cappuccino/20 rounded-[8px] flex-1 w-full mb-3" />
@@ -37,12 +41,20 @@ function WishlistProductCard({ handle }) {
 
 export default function Login() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   const { products } = useShopifyProducts({ first: 12 })
   const { user, token: customerToken, isAuthenticated, login, register, logout, recoverPassword, fetchOrders, fetchProfile, loading, error: authError } = useShopifyAuth()
   const { login: adminLogin, exchangeCustomerToken } = useAdminAuth()
 
   const [tab, setTab] = useState('login')
   const [dashboardTab, setDashboardTab] = useState('overview')
+
+  useEffect(() => {
+    const tabParam = searchParams.get('tab')
+    if (tabParam && ['overview', 'orders', 'addresses', 'wishlist'].includes(tabParam)) {
+      setDashboardTab(tabParam)
+    }
+  }, [searchParams])
   const [mobileDropdownOpen, setMobileDropdownOpen] = useState(false)
   const [orders, setOrders] = useState([])
   const [ordersLoading, setOrdersLoading] = useState(false)
@@ -153,15 +165,18 @@ export default function Login() {
             return
           }
         }
-        await login(submitEmail, form.password)
-        navigate('/')
+        const res = await login(submitEmail, form.password)
+        if (res && res.success) {
+          navigate('/dashboard')
+        }
       } else if (tab === 'register') {
         const nameParts = form.name.split(' ')
         const firstName = nameParts[0]
         const lastName = nameParts.slice(1).join(' ') || '-'
-        await register(firstName, lastName, submitEmail, form.password)
-        setTab('login')
-        alert('Account created! Please sign in.')
+        const res = await register(firstName, lastName, submitEmail, form.password)
+        if (res && res.success) {
+          navigate('/dashboard')
+        }
       } else if (tab === 'forgot') {
         await recoverPassword(submitEmail)
         alert('Password recovery email sent. Please check your inbox.')

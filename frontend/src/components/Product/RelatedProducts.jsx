@@ -2,7 +2,7 @@ import PropTypes from 'prop-types'
 import { motion } from 'framer-motion'
 import ProductCard from '../ProductCard/ProductCard'
 import RevealOnScroll from '../UI/RevealOnScroll'
-import { useShopifyProducts } from '../../hooks/useShopify'
+import { useShopifyProducts } from '../../hooks/useCatalog'
 
 export default function RelatedProducts({ product }) {
   const { products } = useShopifyProducts({ first: 24 })

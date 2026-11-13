@@ -108,7 +108,9 @@ export default function ProductInfo({ product }) {
   const [isExpanded, setIsExpanded] = useState(false)
 
   const { addToCart, openCart, toggleWishlist, wishlist } = useStore()
-  const isWished = wishlist.includes(product.id)
+  const productId = String(product.id || product._id || product.slug || '')
+  const productSlug = product.slug ? String(product.slug) : ''
+  const isWished = wishlist.some((id) => String(id) === productId || (productSlug && String(id) === productSlug))
   const isOnSale = product.originalPrice && product.originalPrice > product.price
 
   const handleAddToCart = () => {
@@ -295,7 +297,7 @@ export default function ProductInfo({ product }) {
         </motion.button>
 
         <button
-          onClick={() => toggleWishlist(product.id)}
+          onClick={() => toggleWishlist(product.slug || product.id)}
           className="flex h-[48px] w-full items-center justify-center gap-2 rounded-[4px] border border-cappuccino font-dm text-[14px] font-medium text-espresso transition-colors duration-250 ease-smooth hover:border-caramel active:scale-[0.98]"
           type="button"
           aria-label={isWished ? 'Remove from wishlist' : 'Add to wishlist'}

@@ -4,8 +4,8 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { Heart, Menu, Search, ShoppingBag, User, X } from 'lucide-react'
 import CartDrawer from '../Cart/CartDrawer'
 import useStore from '../../store/useStore'
-import { useShopifyCollections } from '../../hooks/useShopify'
-import { useShopifyAuth } from '../../hooks/useShopifyAuth'
+import { useShopifyCollections } from '../../hooks/useCatalog'
+import { useShopifyAuth } from '../../hooks/useCatalogAuth'
 import { useAdminAuth } from '../../hooks/useAdminAuth'
 
 const NAV_LINKS = [
@@ -30,6 +30,7 @@ export default function Navbar() {
     toggleMobileMenu,
   } = useStore()
   const count = useStore((state) => state.cartCount())
+  const wishlist = useStore((state) => state.wishlist)
 
   const accountLink = isAdmin ? '/admin' : isCustomer ? '/dashboard' : '/login'
 
@@ -175,13 +176,27 @@ export default function Navbar() {
             <Search size={20} strokeWidth={1.5} />
           </button>
 
-          <button
-            className={`flex h-9 w-9 items-center justify-center rounded-full ${iconColor} transition-all duration-300 ease-premium hover:scale-105 hover:bg-cappuccino/22`}
-            aria-label="Wishlist"
-            type="button"
+          <Link
+            to="/wishlist"
+            className={`relative flex h-9 w-9 items-center justify-center rounded-full ${iconColor} transition-all duration-300 ease-premium hover:scale-105 hover:bg-cappuccino/22`}
+            aria-label={`Wishlist with ${wishlist.length} items`}
           >
             <Heart size={20} strokeWidth={1.5} />
-          </button>
+            <AnimatePresence initial={false}>
+              {wishlist.length > 0 && (
+                <motion.span
+                  key={wishlist.length}
+                  initial={{ scale: 0, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  exit={{ scale: 0, opacity: 0 }}
+                  transition={{ type: 'spring', stiffness: 500, damping: 20 }}
+                  className="absolute -right-1 -top-1 flex h-[18px] w-[18px] items-center justify-center rounded-full bg-caramel font-dm text-[10px] font-bold text-cream shadow-sm"
+                >
+                  {wishlist.length}
+                </motion.span>
+              )}
+            </AnimatePresence>
+          </Link>
 
           <button
             onClick={toggleCart}
@@ -287,7 +302,11 @@ export default function Navbar() {
               aria-label="Mobile navigation"
               className="flex flex-1 flex-col items-center justify-center gap-8"
             >
-              {[...NAV_LINKS, { label: isAdmin ? 'Admin' : isCustomer ? 'Dashboard' : 'Account', path: accountLink }].map((link, index) => (
+              {[
+                ...NAV_LINKS,
+                { label: `Wishlist ${wishlist.length > 0 ? `(${wishlist.length})` : ''}`.trim(), path: '/wishlist' },
+                { label: isAdmin ? 'Admin' : isCustomer ? 'Dashboard' : 'Account', path: accountLink },
+              ].map((link, index) => (
                 <motion.div
                   key={link.label}
                   initial={{ opacity: 0, y: 24 }}

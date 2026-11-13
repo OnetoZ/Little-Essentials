@@ -19,7 +19,7 @@ import {
   User,
 } from 'lucide-react'
 import { useAdminAuth, getAdminToken } from '../hooks/useAdminAuth'
-import { useShopifyAuth } from '../hooks/useShopifyAuth'
+import { useShopifyAuth } from '../hooks/useCatalogAuth'
 import SEO from '../components/SEO/SEO'
 
 const money = (n) => `₹${Number(n || 0).toLocaleString('en-IN', { maximumFractionDigits: 2 })}`
